@@ -72,8 +72,8 @@
 //  - (Head pointer == Tail pointer - 1), accounting for wraparound,
 //    is defined as a completely full FIFO.  As a result, the max data 
 //    in a FIFO is the buffer size - 1.
-static BYTE vUARTRXFIFO[65];
-static BYTE vUARTTXFIFO[17];
+static BYTE vUARTRXFIFO[64]; //串口是慢速设备，一般都够大了
+static BYTE vUARTTXFIFO[256];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
 static BYTE *RXHeadPtr = vUARTRXFIFO, *RXTailPtr = vUARTRXFIFO;
 static BYTE *TXHeadPtr = vUARTTXFIFO, *TXTailPtr = vUARTTXFIFO;
 
@@ -225,6 +225,9 @@ void UART2TCPBridgeTask(void)
 
 			
 
+
+
+
 			//从UART发送到TCP
 
 			// Read FIFO pointers into a local shadow copy.  Some pointers are volatile 
@@ -239,9 +242,21 @@ void UART2TCPBridgeTask(void)
 			// Transmit pending data that has been placed into the UART RX FIFO (in the ISR)
 			//
 			wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
+#if 0
 			wMaxGet = RXHeadPtrShadow - RXTailPtrShadow;	// Get UART RX FIFO byte count
 			if(RXHeadPtrShadow < RXTailPtrShadow)
 				wMaxGet += sizeof(vUARTRXFIFO);
+#else
+			//计算有多少数据
+			wMaxGet = 0;
+			if(RXHeadPtrShadow != RXTailPtrShadow) {
+			    if(RXHeadPtrShadow >= RXTailPtrShadow) {
+				    wMaxGet = RXHeadPtrShadow - RXTailPtrShadow;
+			    } else {
+				    wMaxGet = RXHeadPtrShadow + sizeof(vUARTRXFIFO) - RXTailPtrShadow;
+			    }
+			}
+#endif
 			if(wMaxPut > wMaxGet)				// Calculate the lesser of the two
 				wMaxPut = wMaxGet;
 			if(wMaxPut)							// See if we can transfer anything
@@ -259,8 +274,13 @@ void UART2TCPBridgeTask(void)
 					wMaxPut -= w;
 				}
 				TCPPutArray(MySocket, RXTailPtrShadow, wMaxPut);
+				TCPFlush(MySocket);
 
 				RXTailPtrShadow += wMaxPut;
+
+				PIE1bits.RCIE = 0;
+				RXTailPtr = RXTailPtrShadow;
+				PIE1bits.RCIE = 1;
 
 				// No flush.  The stack will automatically flush and do 
 				// transmit coallescing to minimize the number of TCP 
@@ -268,6 +288,10 @@ void UART2TCPBridgeTask(void)
 				// here, latency will go down, but so will max throughput 
 				// and bandwidth efficiency.
 			}
+
+
+
+
 
 			//
 			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
@@ -279,10 +303,24 @@ void UART2TCPBridgeTask(void)
 			PIE1bits.TXIE = 0;  //关闭UART接受
 			TXHeadPtrShadow = TXHeadPtr;
 			TXTailPtrShadow = TXTailPtr;
+			PIE1bits.TXIE = 1; //打开UART中断，允许发送产生中断
 
+			//计算没法出去的数据大小
+			//Head装入,Tail发出
+			if(TXHeadPtrShadow >= TXTailPtrShadow) {
+				wMaxPut = TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
+			} else {
+				wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
+			}
+			//计算空的空间
+			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
+			//
+#if 0
 			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
 			if(TXHeadPtrShadow >= TXTailPtrShadow)
 				wMaxPut += sizeof(vUARTTXFIFO);
+#endif
+
 			if(wMaxPut > wMaxGet)				// Calculate the lesser of the two
 				wMaxPut = wMaxGet;
 			if(wMaxPut)							// See if we can transfer anything
@@ -299,15 +337,14 @@ void UART2TCPBridgeTask(void)
 					wMaxPut -= w;
 				}
 				TCPGetArray(MySocket, TXHeadPtrShadow, wMaxPut);
+				TCPFlush(MySocket);
 
 				TXHeadPtrShadow += wMaxPut;
-			}
 
-			RXTailPtr = RXTailPtrShadow;
-			TXHeadPtr = TXHeadPtrShadow;
 
-			if(TXHeadPtrShadow != TXTailPtrShadow) {  //如果有数据需要发送，则打开UART
-				PIE1bits.TXIE = 1;
+			    PIE1bits.TXIE = 0;
+			    TXHeadPtr = TXHeadPtrShadow;
+			    PIE1bits.TXIE = 1;
 			}
 
 			break;
@@ -335,10 +372,10 @@ void UART2TCPBridgeTask(void)
 void UART2TCPBridgeISR(void)
 {
 	// NOTE: All local variables used here should be declared static
-	static BYTE i;
+	static BYTE i,s;
 
 	// Store a received byte, if pending, if possible
-	if(PIR1bits.RCIF)
+	if(PIR1bits.RCIF && PIE1bits.RCIE)
 	{
 		// Get the byte
 		i = RCREG;
@@ -347,7 +384,8 @@ void UART2TCPBridgeISR(void)
 		PIR1bits.RCIF = 0;
 
 		// Copy the byte into the local FIFO, if it won't cause an overflow
-		if(RXHeadPtr != RXTailPtr - 1)
+#if 0   //不等于不等于有空间，也许已经满了
+		if(RXHeadPtr != RXTailPtr)
 		{
 			if((RXHeadPtr != vUARTRXFIFO + sizeof(vUARTRXFIFO)) || (RXTailPtr != vUARTRXFIFO))
 			{
@@ -356,21 +394,50 @@ void UART2TCPBridgeISR(void)
 					RXHeadPtr = vUARTRXFIFO;
 			}
 		}
+#else
+		//计算使用了多少空间
+		if(RXHeadPtr >= RXTailPtr) {
+			s = RXHeadPtr - RXTailPtr;
+		} else {
+			s = RXHeadPtr + sizeof(vUARTRXFIFO) - RXTailPtr;
+		}
+		//计算剩余多少空间
+		s = sizeof(vUARTRXFIFO) - s;
+		
+		if(s > 0)
+		{
+			*RXHeadPtr++ = i;
+			if(RXHeadPtr >= vUARTRXFIFO + sizeof(vUARTRXFIFO)) {
+				RXHeadPtr = vUARTRXFIFO;
+			}
+#endif
+		}
 	}
 
 	// Transmit a byte, if pending, if possible
-	if(PIR1bits.TXIF)
+	if(PIR1bits.TXIF && PIE1bits.TXIE)
 	{
+#if 0
 		if(TXHeadPtr != TXTailPtr)
 		{
-			TXREG = *TXTailPtr++;
+		    TXREG = *TXTailPtr++;
 			if(TXTailPtr >= vUARTTXFIFO + sizeof(vUARTTXFIFO))
-				TXTailPtr = vUARTTXFIFO;
+			TXTailPtr = vUARTTXFIFO;
 		}
 		else	// Disable the TX interrupt if we are done so that we don't keep entering this ISR
 		{
+	        PIE1bits.TXIE = 0;
+		}
+#else
+		if(TXTailPtr != TXHeadPtr) {
+			TXREG = *TXTailPtr++;
+			if(TXTailPtr >= vUARTTXFIFO + sizeof(vUARTTXFIFO)) {
+			    TXTailPtr = vUARTTXFIFO;
+			}
+		} else {
 			PIE1bits.TXIE = 0;
 		}
+#endif
 	}
 }
 
