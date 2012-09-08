@@ -225,23 +225,15 @@ void UART2TCPBridgeTask(void)
 
 			
 
+			//从UART发送到TCP
+
 			// Read FIFO pointers into a local shadow copy.  Some pointers are volatile 
 			// (modified in the ISR), so we must do this safely by disabling interrupts
 
-			RXTailPtrShadow = RXTailPtr;
-			TXHeadPtrShadow = TXHeadPtr;
-
 			PIE1bits.RCIE = 0;
-			PIE1bits.TXIE = 0;
-
+			RXTailPtrShadow = RXTailPtr;
 			RXHeadPtrShadow = RXHeadPtr;
-			TXTailPtrShadow = TXTailPtr;
-
 			PIE1bits.RCIE = 1;
-
-			if(TXHeadPtrShadow != TXTailPtrShadow)
-				PIE1bits.TXIE = 1;
-
 
 			//
 			// Transmit pending data that has been placed into the UART RX FIFO (in the ISR)
@@ -280,9 +272,15 @@ void UART2TCPBridgeTask(void)
 			//
 			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
 			//
+
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
 
-			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow - 1;// Get UART TX FIFO free space
+			//从TCP发送到UART
+			PIE1bits.TXIE = 0;  //关闭UART接受
+			TXHeadPtrShadow = TXHeadPtr;
+			TXTailPtrShadow = TXTailPtr;
+
+			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
 			if(TXHeadPtrShadow >= TXTailPtrShadow)
 				wMaxPut += sizeof(vUARTTXFIFO);
 			if(wMaxPut > wMaxGet)				// Calculate the lesser of the two
@@ -304,17 +302,13 @@ void UART2TCPBridgeTask(void)
 
 				TXHeadPtrShadow += wMaxPut;
 			}
-			
-			// Write local shadowed FIFO pointers into the volatile FIFO pointers.
-			PIE1bits.RCIE = 0;
-			PIE1bits.TXIE = 0;
 
 			RXTailPtr = RXTailPtrShadow;
 			TXHeadPtr = TXHeadPtrShadow;
 
-			PIE1bits.RCIE = 1;
-			if(TXHeadPtrShadow != TXTailPtrShadow)
+			if(TXHeadPtrShadow != TXTailPtrShadow) {  //如果有数据需要发送，则打开UART
 				PIE1bits.TXIE = 1;
+			}
 
 			break;
 	}
