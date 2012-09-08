@@ -73,7 +73,7 @@
 //    is defined as a completely full FIFO.  As a result, the max data 
 //    in a FIFO is the buffer size - 1.
 static BYTE vUARTRXFIFO[64]; //串口是慢速设备，一般都够大了
-static BYTE vUARTTXFIFO[256];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
+static BYTE vUARTTXFIFO[10];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
 static BYTE *RXHeadPtr = vUARTRXFIFO, *RXTailPtr = vUARTRXFIFO;
 static BYTE *TXHeadPtr = vUARTTXFIFO, *TXTailPtr = vUARTTXFIFO;
 
@@ -223,7 +223,6 @@ void UART2TCPBridgeTask(void)
 				LED2_IO ^= 1;
 			}
 
-			
 
 
 
@@ -274,7 +273,6 @@ void UART2TCPBridgeTask(void)
 					wMaxPut -= w;
 				}
 				TCPPutArray(MySocket, RXTailPtrShadow, wMaxPut);
-				TCPFlush(MySocket);
 
 				RXTailPtrShadow += wMaxPut;
 
@@ -292,7 +290,7 @@ void UART2TCPBridgeTask(void)
 
 
 
-
+			
 			//
 			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
 			//
@@ -310,10 +308,10 @@ void UART2TCPBridgeTask(void)
 			if(TXHeadPtrShadow >= TXTailPtrShadow) {
 				wMaxPut = TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
 			} else {
-				wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
+				wMaxPut = sizeof(vUARTTXFIFO) + TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
 			}
 			//计算空的空间
-			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
+			wMaxPut =  - wMaxPut;
 			//
 #if 0
 			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
@@ -337,7 +335,6 @@ void UART2TCPBridgeTask(void)
 					wMaxPut -= w;
 				}
 				TCPGetArray(MySocket, TXHeadPtrShadow, wMaxPut);
-				TCPFlush(MySocket);
 
 				TXHeadPtrShadow += wMaxPut;
 
@@ -346,6 +343,12 @@ void UART2TCPBridgeTask(void)
 			    TXHeadPtr = TXHeadPtrShadow;
 			    PIE1bits.TXIE = 1;
 			}
+
+
+
+
+
+
 
 			break;
 	}
