@@ -310,9 +310,7 @@ void UART2TCPBridgeTask(void)
 			} else {
 				wMaxPut = sizeof(vUARTTXFIFO) + TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
 			}
-			//¼ÆËã¿ÕµÄ¿Õ¼ä
-			wMaxPut =  - wMaxPut;
-			//
+			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
 #if 0
 			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
 			if(TXHeadPtrShadow >= TXTailPtrShadow)
