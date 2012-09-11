@@ -224,67 +224,6 @@ void UART2TCPBridgeTask(void)
 				LED2_IO ^= 1;
 			}
 
-			
-#if 1  //测试不收发数据的情况
-
-			
-			//
-			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
-			//
-
-			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
-
-			
-			//从TCP发送到UART
-			TXHeadPtrShadow = TXHeadPtr;
-			PIE1bits.TXIE = 0;  //关闭UART发送
-			TXTailPtrShadow = TXTailPtr;
-			PIE1bits.TXIE = 1; //打开UART中断，允许发送产生中断
-
-			//计算没法出去的数据大小
-			//Head装入,Tail发出
-			if(TXHeadPtrShadow >= TXTailPtrShadow) {
-				wMaxPut = TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
-			} else {
-				wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
-			}
-			//计算空的空间
-			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
-			//
-#if 0
-			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
-			if(TXHeadPtrShadow >= TXTailPtrShadow)
-				wMaxPut += sizeof(vUARTTXFIFO);
-#endif
-
-			if(wMaxPut >= wMaxGet) {				// Calculate the lesser of the two
-				wMaxPut = wMaxGet;
-			} else {
-				LED6_IO = 1;
-			}
-			if(wMaxPut)							// See if we can transfer anything
-			{
-				// Transfer the data over.  Note that a two part put 
-				// may be needed if the data spans the vUARTTXFIFO 
-				// end to start address.
-				w = vUARTTXFIFO + sizeof(vUARTTXFIFO) - TXHeadPtrShadow;
-				if(wMaxPut >= w)
-				{
-					TCPGetArray(MySocket, TXHeadPtrShadow, w);
-
-					TXHeadPtrShadow = vUARTTXFIFO;
-					wMaxPut -= w;
-				}
-				TCPGetArray(MySocket, TXHeadPtrShadow, wMaxPut);
-				TCPFlush(MySocket);
-
-				TXHeadPtrShadow += wMaxPut;
-
-
-			    PIE1bits.TXIE = 0;
-			    TXHeadPtr = TXHeadPtrShadow;
-			    PIE1bits.TXIE = 1;
-			}
 
 
 
@@ -354,7 +293,71 @@ void UART2TCPBridgeTask(void)
 			}
 
 
+
+
+			
+			//
+			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
+			//
+
+			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
+
+			
+			//从TCP发送到UART
+			TXHeadPtrShadow = TXHeadPtr;
+			PIE1bits.TXIE = 0;  //关闭UART发送
+			TXTailPtrShadow = TXTailPtr;
+			PIE1bits.TXIE = 1; //打开UART中断，允许发送产生中断
+
+			//计算没法出去的数据大小
+			//Head装入,Tail发出
+			if(TXHeadPtrShadow >= TXTailPtrShadow) {
+				wMaxPut = TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
+			} else {
+				wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
+			}
+			//计算空的空间
+			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
+			//
+#if 0
+			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
+			if(TXHeadPtrShadow >= TXTailPtrShadow)
+				wMaxPut += sizeof(vUARTTXFIFO);
 #endif
+
+			if(wMaxPut >= wMaxGet) {				// Calculate the lesser of the two
+				wMaxPut = wMaxGet;
+			} else {
+				LED6_IO = 1;
+			}
+			if(wMaxPut)							// See if we can transfer anything
+			{
+				// Transfer the data over.  Note that a two part put 
+				// may be needed if the data spans the vUARTTXFIFO 
+				// end to start address.
+				w = vUARTTXFIFO + sizeof(vUARTTXFIFO) - TXHeadPtrShadow;
+				if(wMaxPut >= w)
+				{
+					TCPGetArray(MySocket, TXHeadPtrShadow, w);
+
+					TXHeadPtrShadow = vUARTTXFIFO;
+					wMaxPut -= w;
+				}
+				TCPGetArray(MySocket, TXHeadPtrShadow, wMaxPut);
+				TCPFlush(MySocket);
+
+				TXHeadPtrShadow += wMaxPut;
+
+
+			    PIE1bits.TXIE = 0;
+			    TXHeadPtr = TXHeadPtrShadow;
+			    PIE1bits.TXIE = 1;
+			}
+
+
+
+
+
 
 
 
