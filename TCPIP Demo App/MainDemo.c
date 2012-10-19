@@ -86,6 +86,7 @@
 
 // Include all headers for any enabled TCPIP Stack functions
 #include "TCPIP Stack/TCPIP.h"
+#include "debug.h"
 
 // Include functions specific to this stack application
 #include "MainDemo.h"
@@ -200,7 +201,7 @@ int main(void)
 
     // Initiates board setup process if button is depressed 
 	// on startup
-    if(BUTTON0_IO == 0u)
+    if(BUTTON0_IO == 1u)
     {
 		#if (defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
 		// Invalidate the EEPROM contents if BUTTON0 is held down for more than 4 seconds
@@ -313,6 +314,11 @@ int main(void)
 
 		ProcessIO();
 
+        #if DEBUG_ON
+		//DebugPrintString("hello,my udp debug string\r\n");
+	    DebugTask();
+        #endif
+
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service
 		if(DHCPBindCount != myDHCPBindCount)
@@ -421,6 +427,9 @@ static void ProcessIO(void)
  ********************************************************************/
 static void InitializeBoard(void)
 {	
+
+
+#if 1
 	// LEDs
 	LED0_TRIS = 0;
 	LED1_TRIS = 0;
@@ -432,7 +441,12 @@ static void InitializeBoard(void)
 #if !defined(EXPLORER_16)	// Pin multiplexed with a button on EXPLORER_16 
 	LED7_TRIS = 0;
 #endif
-	LED_PUT(0x00);
+#endif
+
+	//RUN_LED_TRIS = 0;
+	//RUN_LED_IO = 0;
+
+	//LED_PUT(0x00);
 
 #if defined(__18CXX)
 	// Enable 4x/5x PLL on PIC18F87J10, PIC18F97J60, etc.

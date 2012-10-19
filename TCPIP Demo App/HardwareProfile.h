@@ -959,6 +959,7 @@
 
 #elif defined(PICDEMNET2) && defined(HI_TECH_C)	//下面是该硬件版本（Ethernet-V2.0）的硬件底层定义
 // PICDEM.net 2 (PIC18F97J60 + ENC28J60) + HI-TECH PICC-18 compiler
+// * lzf * mask
 	typedef struct
 	{
 		unsigned char BOR:1;
@@ -1223,6 +1224,7 @@
 	#define MISTATbits			(*((MISTATbits*)&MISTAT))
 	#define BAUDCONbits			(*((BAUDCONbits*)&BAUDCON1))
 
+#if 1
 	// I/O pins
 	#define LED0_TRIS			(TRISJ0)
 	#define LED0_IO				(LATJ0)
@@ -1251,6 +1253,15 @@
 	#define	BUTTON2_IO			(RF3)
 	#define BUTTON3_TRIS		(TRISF2)
 	#define	BUTTON3_IO			(RF2)
+#else
+	//然后添加这些自己的变量
+	/* lzf * add */
+    #define RUN_LED_TRIS        (TRISG3)
+    #define RUN_LED_IO          (RG3)
+	#define BUTTON0_TRIS		(TRISD6)	//跟Microchip原版有所改变
+	#define	BUTTON0_IO			(RD6)
+    #define LED_PUT(a)		    do{}while(0)
+#endif
 
 	// ENC28J60 I/O pins
 	#define ENC_RST_TRIS		(TRISD3)	// Not connected by default

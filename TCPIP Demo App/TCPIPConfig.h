@@ -63,7 +63,7 @@
  *   disabled the following high-level application modules.
  */
 #define STACK_USE_UART					// Application demo using UART for IP address display and stack configuration
-#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
+//#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
 //#define STACK_USE_IP_GLEANING
 #define STACK_USE_ICMP_SERVER
 #define STACK_USE_ICMP_CLIENT
@@ -72,7 +72,7 @@
 //#define STACK_USE_SSL_SERVER			// SSL server socket support (Requires SW300052)
 //#define STACK_USE_SSL_CLIENT			// SSL client socket support (Requires SW300052)
 #define STACK_USE_DHCP_CLIENT
-#define STACK_USE_DHCP_SERVER
+//#define STACK_USE_DHCP_SERVER
 //#define STACK_USE_FTP_SERVER
 #define STACK_USE_SMTP_CLIENT
 //#define STACK_USE_SNMP_SERVER
