@@ -86,10 +86,13 @@
 
 // Include all headers for any enabled TCPIP Stack functions
 #include "TCPIP Stack/TCPIP.h"
-#include "debug.h"
+
 
 // Include functions specific to this stack application
 #include "MainDemo.h"
+
+
+#include "debug.h"
 
 // Declare AppConfig structure and some other supporting stack variables
 APP_CONFIG AppConfig;
@@ -165,6 +168,9 @@ static void ProcessIO(void);
 		Nop();
 	}
 #endif
+
+
+	unsigned char led_reg;
 
 //
 // Main application entry point.
@@ -315,7 +321,6 @@ int main(void)
 		ProcessIO();
 
         #if DEBUG_ON
-		//DebugPrintString("hello,my udp debug string\r\n");
 	    DebugTask();
         #endif
 
@@ -443,8 +448,9 @@ static void InitializeBoard(void)
 #endif
 #endif
 
-	//RUN_LED_TRIS = 0;
-	//RUN_LED_IO = 0;
+	RUN_LED_TRIS = 0;
+	RUN_LED_IO = 1;
+
 
 	//LED_PUT(0x00);
 

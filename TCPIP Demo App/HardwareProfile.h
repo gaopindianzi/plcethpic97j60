@@ -1225,59 +1225,60 @@
 	#define BAUDCONbits			(*((BAUDCONbits*)&BAUDCON1))
 
 #if 1
+	// * lzf * changed ...
+	extern unsigned char led_reg;
 	// I/O pins
-	#define LED0_TRIS			(TRISJ0)
-	#define LED0_IO				(LATJ0)
-	#define LED1_TRIS			(TRISJ1)
-	#define LED1_IO				(LATJ1)
-	#define LED2_TRIS			(TRISJ2)
-	#define LED2_IO				(LATJ2)
-	#define LED3_TRIS			(TRISJ3)
-	#define LED3_IO				(LATJ3)
-	#define LED4_TRIS			(TRISJ4)
-	#define LED4_IO				(LATJ4)
-	#define LED5_TRIS			(TRISJ5)
-	#define LED5_IO				(LATJ5)
-	#define LED6_TRIS			(TRISJ6)
-	#define LED6_IO				(LATJ6)
-	#define LED7_TRIS			(TRISJ7)
-	#define LED7_IO				(LATJ7)
-	#define LED_GET()			(LATJ)
-	#define LED_PUT(a)			(LATJ = (a))
+	#define LED0_TRIS			led_reg   //(TRISJ0)
+	#define LED0_IO				led_reg   //(LATJ0)
+	#define LED1_TRIS			led_reg   //(TRISJ1)
+	#define LED1_IO				led_reg   //(LATJ1)
+	#define LED2_TRIS			led_reg   //(TRISJ2)
+	#define LED2_IO				led_reg   //(LATJ2)
+	#define LED3_TRIS			led_reg  //(TRISJ3)
+	#define LED3_IO				led_reg  //(LATJ3)
+	#define LED4_TRIS			led_reg  //(TRISJ4)
+	#define LED4_IO				led_reg  //(LATJ4)
+	#define LED5_TRIS			led_reg  //(TRISJ5)
+	#define LED5_IO				led_reg  //(LATJ5)
+	#define LED6_TRIS			led_reg  //(TRISJ6)
+	#define LED6_IO				led_reg  //(LATJ6)
+	#define LED7_TRIS			led_reg  //(TRISJ7)
+	#define LED7_IO				led_reg  //(LATJ7)
+	#define LED_GET()			led_reg  //(LATJ)
+	#define LED_PUT(a)			(led_reg = (a))   //(LATJ = (a))
 
-	#define BUTTON0_TRIS		(TRISF5)	//跟Microchip原版有所改变
-	#define	BUTTON0_IO			(RF5)
-	#define BUTTON1_TRIS		(TRISF4)
-	#define	BUTTON1_IO			(RF4)
-	#define BUTTON2_TRIS		(TRISF3)
-	#define	BUTTON2_IO			(RF3)
-	#define BUTTON3_TRIS		(TRISF2)
-	#define	BUTTON3_IO			(RF2)
-#else
+	#define BUTTON0_TRIS		led_reg   //(TRISF5)	//跟Microchip原版有所改变
+	#define	BUTTON0_IO			led_reg   //(RF5)
+	#define BUTTON1_TRIS		led_reg   //(TRISF4)
+	#define	BUTTON1_IO			led_reg   //(RF4)
+	#define BUTTON2_TRIS		led_reg   //(TRISF3)
+	#define	BUTTON2_IO			led_reg   //(RF3)
+	#define BUTTON3_TRIS		led_reg   //(TRISF2)
+	#define	BUTTON3_IO			led_reg   //(RF2)
 	//然后添加这些自己的变量
 	/* lzf * add */
     #define RUN_LED_TRIS        (TRISG3)
-    #define RUN_LED_IO          (RG3)
-	#define BUTTON0_TRIS		(TRISD6)	//跟Microchip原版有所改变
-	#define	BUTTON0_IO			(RD6)
-    #define LED_PUT(a)		    do{}while(0)
-#endif
+    #define RUN_LED_IO          (LATG3)
+    #define IP_CONFIG_TRIS      (TRISD6)
+    #define IP_CONFIG_IO        (RD6)
+
 
 	// ENC28J60 I/O pins
-	#define ENC_RST_TRIS		(TRISD3)	// Not connected by default
-	#define ENC_RST_IO			(LATD3)
+	#define ENC_RST_TRIS		led_reg //(TRISD3)	// Not connected by default
+	#define ENC_RST_IO			led_reg //(LATD3)
 //	#define ENC_CS_TRIS			(TRISD1)	// Uncomment this line if you wish to use the ENC28J60 on the PICDEM.net 2 board instead of the internal PIC18F97J60 Ethernet module
-	#define ENC_CS_IO			(LATD1)
-	#define ENC_SCK_TRIS		(TRISD6)
-	#define ENC_SDI_TRIS		(TRISD5)
-	#define ENC_SDO_TRIS		(TRISC4)
-	#define ENC_SPI_IF			(SSP2IF)
-	#define ENC_SSPBUF			(SSP2BUF)
-	#define ENC_SPISTAT			(SSP2STAT)
-	#define ENC_SPISTATbits		(SSP2STATbits)
-	#define ENC_SPICON1			(SSP2CON1)
-	#define ENC_SPICON1bits		(SSP2CON1bits)
-	#define ENC_SPICON2			(SSP2CON2)
+	#define ENC_CS_IO			led_reg  //(LATD1)
+	#define ENC_SCK_TRIS		led_reg  //(TRISD6)
+	#define ENC_SDI_TRIS		led_reg  //(TRISD5)
+	#define ENC_SDO_TRIS		led_reg  //(TRISC4)
+	#define ENC_SPI_IF			led_reg  //(SSP2IF)
+	#define ENC_SSPBUF			led_reg  //(SSP2BUF)
+	#define ENC_SPISTAT			led_reg  //(SSP2STAT)
+	#define ENC_SPISTATbits		led_reg  //(SSP2STATbits)
+	#define ENC_SPICON1			led_reg  //(SSP2CON1)
+	#define ENC_SPICON1bits		led_reg  //(SSP2CON1bits)
+	#define ENC_SPICON2			led_reg  //(SSP2CON2)
+#endif
 
 	// 25LC256 I/O pins
 	#define EEPROM_CS_TRIS		(TRISC0)	//跟Microchip原版有所改变
@@ -1292,19 +1293,19 @@
 	#define EEPROM_SPICON2		(SSP1CON2)
 	#define EEPROM_SPISTAT		(SSP1STAT)
 	#define EEPROM_SPISTATbits	(SSP1STATbits)
-
+#if 1 //lzf changed
 	// LCD I/O pins
-	#define LCD_BL_TRIS			(TRISH3)	//LCD背光灯控制		跟Microchip原版有所改变
-	#define LCD_BL_IO			(LATH3)
-	#define LCD_DATA_TRIS		(TRISE)
-	#define LCD_DATA_IO			(LATE)
-	#define LCD_RD_WR_TRIS		(TRISH1)
-	#define LCD_RD_WR_IO		(LATH1)
-	#define LCD_RS_TRIS			(TRISH2)
-	#define LCD_RS_IO			(LATH2)
-	#define LCD_E_TRIS			(TRISH0)
-	#define LCD_E_IO			(LATH0)
-
+	#define LCD_BL_TRIS			led_reg  //(TRISH3)	//LCD背光灯控制		跟Microchip原版有所改变
+	#define LCD_BL_IO			led_reg  //(LATH3)
+	#define LCD_DATA_TRIS		led_reg  //(TRISE)
+	#define LCD_DATA_IO			led_reg  //(LATE)
+	#define LCD_RD_WR_TRIS		led_reg  //(TRISH1)
+	#define LCD_RD_WR_IO		led_reg  //(LATH1)
+	#define LCD_RS_TRIS			led_reg  //(TRISH2)
+	#define LCD_RS_IO			led_reg  //(LATH2)
+	#define LCD_E_TRIS			led_reg  //(TRISH0)
+	#define LCD_E_IO			led_reg  //(LATH0)
+#endif
 	// Serial Flash/SRAM/UART PICtail
 //	#define SPIRAM_CS_TRIS			(TRISB5)
 //	#define SPIRAM_CS_IO			(LATB5)
