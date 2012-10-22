@@ -37,7 +37,7 @@ void DebugString(const char * ramstr)
 }
 
 
-void DebugStringNum(const char * str,unsigned int num)
+void DebugStringNum(const char * str,unsigned int num,const char * tail)
 {
 	unsigned char buffer[20];
 	unsigned char i;
@@ -60,8 +60,40 @@ void DebugStringNum(const char * str,unsigned int num)
 			}
 		}
 	}
-	DebugString("\r\n");
+	DebugString(tail);
 }
+
+
+void DebugStringHex(const char * str,unsigned long num,const char * tail)
+{
+	unsigned char buffer[20];
+	unsigned char i;
+	DebugString(str);
+	i = 0;
+	while(1) {
+		char n = (char)(num  & 0x0F);
+		if(n > 9) {
+			buffer[i++] = n + 'A';
+		} else {
+			buffer[i++] = n + '0';
+		}
+		num >>= 4;
+		if(num == 0){
+			break;
+		}
+	}
+	if(i) {
+		while(1) {
+		    i--;
+		    DebugPrintChar(buffer[i]);
+			if(i == 0) {
+				break;
+			}
+		}
+	}
+	DebugString(tail);
+}
+
 
 void DebugTask(void)
 {
@@ -88,11 +120,14 @@ void DebugTask(void)
 			break;
 		case DEBUG_DNS_IP:
 			{
+				char buffer[32];
 				RELAY_OUT_1 = 0;
 				if(!DNSBeginUsage()) {
 					break;
 				}
-				DNSResolve("www.qq.com",DNS_TYPE_A);
+				//strcpypgm2ram(buffer,(ROM BYTE*)"www.qq.com");
+				//DNSResolve(buffer, DNS_TYPE_A);
+				DNSResolveROM((ROM BYTE*)"www.qq.com", DNS_TYPE_A);
 				DebugSM = DEBUG_DNS_WAIT;
 			}
 			break;
@@ -102,11 +137,16 @@ void DebugTask(void)
 				if(!DNSIsResolved(&hostip)) {
 					break;
 				}
+				DebugStringNum("hostip=",hostip.v[0],".");
+				DebugStringNum("",hostip.v[1],".");
+				DebugStringNum("",hostip.v[2],".");
+				DebugStringNum("",hostip.v[3],",  ");
 				DebugSM = DEBUG_DNS_CLOSE;
 			}
 			break;
 		case DEBUG_DNS_CLOSE:
 			{
+				RELAY_OUT_3 = 0;
 				if(!DNSEndUsage()) {
 					break;
 				}
@@ -116,17 +156,19 @@ void DebugTask(void)
 			break;
 		case DEBUG_RUN:
 			{
-				RELAY_OUT_3 = 0;
+				RELAY_OUT_4 = 0;
 				if(TickGet() - StartTime > TICK_SECOND) {
 					StartTime = TickGet();
 					//DebugPrintString("haha\r\n");
-					DebugStringNum("IP地址是",50505);
+					DebugStringNum("IP地址是",50505,"");
+					DebugStringHex("Ip地址是。。。",0x333422,"\r\n");
 				} else {
 					break;
 				}
 
-				RELAY_OUT_2 = 1;
-				RELAY_OUT_3 = 1;
+				
+				RELAY_OUT_5 = 0;
+
 				DebugSM = DEBUG_DNS_IP;
 
 				RUN_LED_IO = !RUN_LED_IO;

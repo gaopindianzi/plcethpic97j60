@@ -162,7 +162,7 @@
 
 #define MY_DEFAULT_MASK_BYTE1           (255ul)
 #define MY_DEFAULT_MASK_BYTE2           (255ul)
-#define MY_DEFAULT_MASK_BYTE3           (0ul)
+#define MY_DEFAULT_MASK_BYTE3           (255ul)
 #define MY_DEFAULT_MASK_BYTE4           (0ul)
 
 #define MY_DEFAULT_GATE_BYTE1           (192ul)
