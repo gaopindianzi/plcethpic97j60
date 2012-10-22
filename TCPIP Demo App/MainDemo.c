@@ -457,6 +457,21 @@ static void InitializeBoard(void)
 	RUN_LED_TRIS = 0;
 	RUN_LED_IO = 1;
 
+	//RELAY≥ı ºªØ
+	RELAY_OUT_0 = 1;
+	RELAY_OUT_1 = 1;
+	RELAY_OUT_2 = 1;
+	RELAY_OUT_3 = 1;
+	RELAY_OUT_4 = 1;
+	RELAY_OUT_5 = 1;
+	RELAY_OUT_6 = 1;
+	RELAY_OUT_TRIS_0 = 0;
+	RELAY_OUT_TRIS_1 = 0;
+	RELAY_OUT_TRIS_2 = 0;
+	RELAY_OUT_TRIS_3 = 0;
+	RELAY_OUT_TRIS_4 = 0;
+	RELAY_OUT_TRIS_5 = 0;
+	RELAY_OUT_TRIS_6 = 0;
 
 	//LED_PUT(0x00);
 

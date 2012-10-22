@@ -900,6 +900,24 @@
     #define IP_CONFIG_TRIS      (TRISDbits.TRISD6)
     #define IP_CONFIG_IO        (PORTDbits.RD6)
 
+	//继电器部分
+    #define  RELAY_OUT_TRIS_0       (TRISHbits.TRISH2)
+    #define  RELAY_OUT_0            (LATHbits.LATH2)
+    #define  RELAY_OUT_TRIS_1       (TRISHbits.TRISH3)
+    #define  RELAY_OUT_1            (LATHbits.LATH3)
+    #define  RELAY_OUT_TRIS_2       (TRISEbits.TRISE1)
+    #define  RELAY_OUT_2            (LATEbits.LATE1)
+    #define  RELAY_OUT_TRIS_3       (TRISEbits.TRISE0)
+    #define  RELAY_OUT_3            (LATEbits.LATE0)
+    #define  RELAY_OUT_TRIS_4       (TRISBbits.TRISB0)
+    #define  RELAY_OUT_4            (LATBbits.LATB0)
+    #define  RELAY_OUT_TRIS_5       (TRISBbits.TRISB1)
+    #define  RELAY_OUT_5            (LATBbits.LATB1)
+    #define  RELAY_OUT_TRIS_6       (TRISBbits.TRISB2)
+    #define  RELAY_OUT_6            (LATBbits.LATB2)
+	//输入部分
+    #define  DIG_INPUT_TRIS_0       (TRISDbits.TRISD6)
+    #define  DIG_INPUT_IO_0         (PORTDbits.RD6)
 
 
 
@@ -1277,6 +1295,24 @@
     #define IP_CONFIG_TRIS      (TRISD6)
     #define IP_CONFIG_IO        (RD6)
 
+	//继电器部分
+    #define  RELAY_OUT_TRIS_0       (TRISH2)
+    #define  RELAY_OUT_0            (LATH2)
+    #define  RELAY_OUT_TRIS_1       (TRISH3)
+    #define  RELAY_OUT_1            (LATH3)
+    #define  RELAY_OUT_TRIS_2       (TRISE1)
+    #define  RELAY_OUT_2            (LATE1)
+    #define  RELAY_OUT_TRIS_3       (TRISE0)
+    #define  RELAY_OUT_3            (LATE0)
+    #define  RELAY_OUT_TRIS_4       (TRISB0)
+    #define  RELAY_OUT_4            (LATB0)
+    #define  RELAY_OUT_TRIS_5       (TRISB1)
+    #define  RELAY_OUT_5            (LATB1)
+    #define  RELAY_OUT_TRIS_6       (TRISB2)
+    #define  RELAY_OUT_6            (LATB2)
+	//输入部分
+    #define  DIG_INPUT_TRIS_0       (TRISE5)
+    #define  DIG_INPUT_IO_0         (RE5)
 
 	// ENC28J60 I/O pins
 	#define ENC_RST_TRIS		led_reg //(TRISD3)	// Not connected by default
