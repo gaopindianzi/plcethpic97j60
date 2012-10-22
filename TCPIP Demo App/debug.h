@@ -10,8 +10,12 @@
 #define ASSERT_ON           1
 
 
-extern void DebugPrintString(const char * ramstr);
+extern void DebugString(const char * ramstr);
+extern void DebugStringNum(const char * str,unsigned int num);
 extern void DebugTask(void);
+
+
+#define  DEBUGINFO(str)    if(THISINFO)do{ DebugString##str; }while(0)
 
 
 #endif

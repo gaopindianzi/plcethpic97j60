@@ -1,4 +1,8 @@
 #include "TCPIP Stack/TCPIP.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 
 /*
 使用宗旨：
@@ -10,8 +14,7 @@
 
 unsigned char debug_tx[255];
 unsigned char debug_tx_count;
-#define   DEBUG_PORT        30304
-
+#define   DEBUG_PORT        50505
 
 
 void DebugTaskInit(void)
@@ -26,13 +29,39 @@ void DebugPrintChar(char ch)
     }
 }
 
-void DebugPrintString(const char * ramstr)
+void DebugString(const char * ramstr)
 {
 	while(*ramstr) {
 		DebugPrintChar(*ramstr++);
 	}
 }
 
+
+void DebugStringNum(const char * str,unsigned int num)
+{
+	unsigned char buffer[20];
+	unsigned char i;
+	DebugString(str);
+	i = 0;
+	while(1) {
+		char n = num  % 10;
+		buffer[i++] = n + '0';
+		num /= 10;
+		if(num == 0){
+			break;
+		}
+	}
+	if(i) {
+		while(1) {
+		    i--;
+		    DebugPrintChar(buffer[i]);
+			if(i == 0) {
+				break;
+			}
+		}
+	}
+	DebugString("\r\n");
+}
 
 void DebugTask(void)
 {
@@ -58,7 +87,8 @@ void DebugTask(void)
 			{
 				if(TickGet() - StartTime > TICK_SECOND) {
 					StartTime = TickGet();
-					DebugPrintString("haha\r\n");
+					//DebugPrintString("haha\r\n");
+					DebugStringNum("IP地址是",50505);
 				} else {
 					break;
 				}
@@ -69,9 +99,6 @@ void DebugTask(void)
 				if(debug_tx_count == 0) {
 					break;
 				}
-
-
-				
 
 
 				//开始用UDP进行调试信息广播，广播端口号是0xdddd

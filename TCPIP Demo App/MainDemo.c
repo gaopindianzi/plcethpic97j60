@@ -94,6 +94,10 @@
 
 #include "debug.h"
 
+#define  THISINFO        1
+#define  THISERROR       1
+#define  THISASSERT      1
+
 // Declare AppConfig structure and some other supporting stack variables
 APP_CONFIG AppConfig;
 BYTE AN0String[8];
@@ -169,8 +173,10 @@ static void ProcessIO(void);
 	}
 #endif
 
-
-	unsigned char led_reg;
+/***************/
+/*  ÒÆÖ²µÄ±äÁ¿ */
+/***************/
+unsigned char led_reg;
 
 //
 // Main application entry point.
