@@ -121,10 +121,15 @@ void DebugTask(void)
 		case DEBUG_DNS_IP:
 			{
 				char buffer[32];
+				RELAY_OUT_5 = 1;
+				RELAY_OUT_4 = 1;
+				RELAY_OUT_3 = 1;
+				RELAY_OUT_2 = 1;
 				RELAY_OUT_1 = 0;
 				if(!DNSBeginUsage()) {
 					break;
 				}
+				StartTime = TickGet();
 				//strcpypgm2ram(buffer,(ROM BYTE*)"www.qq.com");
 				//DNSResolve(buffer, DNS_TYPE_A);
 				DNSResolveROM((ROM BYTE*)"www.qq.com", DNS_TYPE_A);
@@ -148,9 +153,12 @@ void DebugTask(void)
 			{
 				RELAY_OUT_3 = 0;
 				if(!DNSEndUsage()) {
+					if((TickGet() - StartTime) > TICK_SECOND*10) {
+						DebugSM = DEBUG_DNS_IP;
+					}
 					break;
 				}
-				StartTime = TickGet();
+				
 				DebugSM = DEBUG_RUN;
 			}
 			break;
@@ -196,6 +204,8 @@ void DebugTask(void)
 	
 	            // 关闭，以便其他地方可以使用
 	            UDPClose(MySocket);
+
+				DebugSM = DEBUG_DNS_IP;
 			}
 			break;
 		default:
