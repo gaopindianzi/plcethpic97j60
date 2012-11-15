@@ -209,6 +209,7 @@ int main(void)
 	#endif
 
 	// Initialize Stack and application related NV variables into AppConfig.
+	putrsUART((ROM char*)"\r\n InitAppConfig().");
 	InitAppConfig();
 
     // Initiates board setup process if button is depressed 
@@ -219,6 +220,8 @@ int main(void)
 		// Invalidate the EEPROM contents if BUTTON0 is held down for more than 4 seconds
 		TICK StartTime = TickGet();
 		LED_PUT(0x00);
+
+		putrsUART((ROM char*)"\r\n init board default config.");
 				
 		while(BUTTON0_IO == 0u)
 		{
@@ -254,12 +257,14 @@ int main(void)
 
 	// Initialize core stack layers (MAC, ARP, TCP, UDP) and
 	// application modules (HTTP, SNMP, etc.)
+	putrsUART((ROM char*)"\r\n init statck.");
     StackInit();
 
 	// Initialize any application-specific modules or functions/
 	// For this demo application, this only includes the
 	// UART 2 TCP Bridge
 	#if defined(STACK_USE_UART2TCP_BRIDGE)
+	putrsUART((ROM char*)"\r\n UART2TCPBridgeInit.");
 	UART2TCPBridgeInit();
 	#endif
 
@@ -274,6 +279,7 @@ int main(void)
     // job.
     // If a task needs very long time to do its job, it must be broken
     // down into smaller pieces so that other tasks can have CPU time.
+	putrsUART((ROM char*)"\r\n run in while loop.");
     while(1)
     {
         // Blink LED0 (right most one) every second.
@@ -327,7 +333,8 @@ int main(void)
 		ProcessIO();
 
         #if DEBUG_ON
-	    DebugTask();
+	    //DebugTask();
+		//DebugTcpTask();
         #endif
 
         // If the DHCP lease has changed recently, write the new

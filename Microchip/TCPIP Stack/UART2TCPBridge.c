@@ -72,8 +72,8 @@
 //  - (Head pointer == Tail pointer - 1), accounting for wraparound,
 //    is defined as a completely full FIFO.  As a result, the max data 
 //    in a FIFO is the buffer size - 1.
-static BYTE vUARTRXFIFO[220]; //串口是慢速设备，一般都够大了
-static BYTE vUARTTXFIFO[230];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
+static BYTE vUARTRXFIFO[128]; //串口是慢速设备，一般都够大了
+static BYTE vUARTTXFIFO[128];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
 static BYTE *RXHeadPtr = vUARTRXFIFO, *RXTailPtr = vUARTRXFIFO;
 static BYTE *TXHeadPtr = vUARTTXFIFO, *TXTailPtr = vUARTTXFIFO;
 
