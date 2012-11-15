@@ -243,11 +243,6 @@ void UART2TCPBridgeTask(void)
 			// Transmit pending data that has been placed into the UART RX FIFO (in the ISR)
 			//
 			wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
-#if 0
-			wMaxGet = RXHeadPtrShadow - RXTailPtrShadow;	// Get UART RX FIFO byte count
-			if(RXHeadPtrShadow < RXTailPtrShadow)
-				wMaxGet += sizeof(vUARTRXFIFO);
-#else
 			//计算有多少数据
 			wMaxGet = 0;
 			if(RXHeadPtrShadow != RXTailPtrShadow) {
@@ -257,11 +252,10 @@ void UART2TCPBridgeTask(void)
 				    wMaxGet = RXHeadPtrShadow + sizeof(vUARTRXFIFO) - RXTailPtrShadow;
 			    }
 			}
-#endif
 			if(wMaxPut >= wMaxGet) {				// Calculate the lesser of the two
 				wMaxPut = wMaxGet;
 			} else {
-				LED5_IO = 1;
+				RELAY_OUT_1 = !RELAY_OUT_1;
 			}
 			if(wMaxPut)							// See if we can transfer anything
 			{
@@ -278,7 +272,7 @@ void UART2TCPBridgeTask(void)
 					wMaxPut -= w;
 				}
 				TCPPutArray(MySocket, RXTailPtrShadow, wMaxPut);
-				TCPFlush(MySocket);
+				//TCPFlush(MySocket);
 
 				RXTailPtrShadow += wMaxPut;
 
@@ -293,6 +287,7 @@ void UART2TCPBridgeTask(void)
 				// and bandwidth efficiency.
 			}
 
+			TCPFlush(MySocket);
 
 
 
@@ -300,7 +295,6 @@ void UART2TCPBridgeTask(void)
 			//
 			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
 			//
-
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
 
 			//从TCP发送到UART
@@ -318,17 +312,10 @@ void UART2TCPBridgeTask(void)
 			}
 			//计算空的空间
 			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
-			//
-#if 0
-			wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
-			if(TXHeadPtrShadow >= TXTailPtrShadow)
-				wMaxPut += sizeof(vUARTTXFIFO);
-#endif
-
 			if(wMaxPut >= wMaxGet) {				// Calculate the lesser of the two
 				wMaxPut = wMaxGet;
 			} else {
-				LED6_IO = 1;
+				RELAY_OUT_0 = !RELAY_OUT_0;
 			}
 			if(wMaxPut)							// See if we can transfer anything
 			{
@@ -344,7 +331,7 @@ void UART2TCPBridgeTask(void)
 					wMaxPut -= w;
 				}
 				TCPGetArray(MySocket, TXHeadPtrShadow, wMaxPut);
-				TCPFlush(MySocket);
+				//TCPFlush(MySocket);
 
 				TXHeadPtrShadow += wMaxPut;
 
@@ -353,7 +340,6 @@ void UART2TCPBridgeTask(void)
 			    TXHeadPtr = TXHeadPtrShadow;
 			    PIE1bits.TXIE = 1;
 			}
-
 			break;
 	}
 }
