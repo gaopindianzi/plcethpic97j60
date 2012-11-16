@@ -57,8 +57,10 @@
 
 #include "TCPIP Stack/TCPIP.h"
 
-#define UART2TCPBRIDGE_PORT	1000
-#define BAUD_RATE			115200
+WORD    uart2tcp_bridge_port = 1000;
+DWORD   baud_rate            = 115200ul;
+#define UART2TCPBRIDGE_PORT	   uart2tcp_bridge_port
+#define BAUD_RATE			   baud_rate
 
 
 #if defined(STACK_USE_UART2TCP_BRIDGE)
@@ -287,7 +289,7 @@ void UART2TCPBridgeTask(void)
 				// and bandwidth efficiency.
 			}
 
-			TCPFlush(MySocket);
+			//TCPFlush(MySocket);
 
 
 
@@ -296,6 +298,9 @@ void UART2TCPBridgeTask(void)
 			// Transfer received TCP data into the UART TX FIFO for future transmission (in the ISR)
 			//
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
+			if(wMaxGet > 128) {
+				RELAY_OUT_2 = !RELAY_OUT_2;
+			}
 
 			//从TCP发送到UART
 			TXHeadPtrShadow = TXHeadPtr;
@@ -305,12 +310,8 @@ void UART2TCPBridgeTask(void)
 
 			//计算没法出去的数据大小
 			//Head装入,Tail发出
-			if(TXHeadPtrShadow >= TXTailPtrShadow) {
-				wMaxPut = TXHeadPtrShadow - TXTailPtrShadow;// Get UART TX FIFO free space
-			} else {
-				wMaxPut = TXTailPtrShadow - TXHeadPtrShadow;// Get UART TX FIFO free space
-			}
-			//计算空的空间
+			wMaxPut = (TXHeadPtrShadow >= TXTailPtrShadow)?(TXHeadPtrShadow - TXTailPtrShadow):(TXHeadPtrShadow + sizeof(vUARTTXFIFO) - TXTailPtrShadow);
+			//计算空闲
 			wMaxPut = sizeof(vUARTTXFIFO) - wMaxPut;
 			if(wMaxPut >= wMaxGet) {				// Calculate the lesser of the two
 				wMaxPut = wMaxGet;
