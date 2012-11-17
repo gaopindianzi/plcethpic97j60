@@ -214,7 +214,7 @@ int main(void)
 
     // Initiates board setup process if button is depressed 
 	// on startup
-    if(BUTTON0_IO == 1u)
+    if(0) //BUTTON0_IO == 1u)
     {
 		#if (defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
 		// Invalidate the EEPROM contents if BUTTON0 is held down for more than 4 seconds
@@ -335,7 +335,10 @@ int main(void)
         #if DEBUG_ON
 	    //DebugTask();
 		//DebugTcpTask();
+		DiscoverTask();
+		ResetTask();
         #endif
+
 
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service
@@ -445,9 +448,6 @@ static void ProcessIO(void)
  ********************************************************************/
 static void InitializeBoard(void)
 {	
-
-
-#if 1
 	// LEDs
 	LED0_TRIS = 0;
 	LED1_TRIS = 0;
@@ -459,10 +459,12 @@ static void InitializeBoard(void)
 #if !defined(EXPLORER_16)	// Pin multiplexed with a button on EXPLORER_16 
 	LED7_TRIS = 0;
 #endif
-#endif
+
 
 	RUN_LED_TRIS = 0;
 	RUN_LED_IO = 1;
+	
+	IP_CONFIG_TRIS = 1;  //输入口
 
 	//RELAY初始化
 	RELAY_OUT_0 = 1;
@@ -693,8 +695,11 @@ static void InitAppConfig(void)
     BYTE *p;
 #endif
 
-	AppConfig.Flags.bIsDHCPEnabled = TRUE;
-	AppConfig.Flags.bInConfigMode = TRUE;
+	//AppConfig.Flags.bIsDHCPEnabled = TRUE;
+	//AppConfig.Flags.bInConfigMode = TRUE;
+	AppConfig.Flags.bIsDHCPEnabled = FALSE;
+	AppConfig.Flags.bInConfigMode = FALSE;
+
 	memcpypgm2ram((void*)&AppConfig.MyMACAddr, (ROM void*)SerializedMACAddress, sizeof(AppConfig.MyMACAddr));
 //	{
 //		_prog_addressT MACAddressAddress;
@@ -742,6 +747,18 @@ static void InitAppConfig(void)
 		SPIFlashReadArray(0x01, (BYTE*)&AppConfig, sizeof(AppConfig));
 	else
 		SaveAppConfig();
+#endif
+}
+
+void ResetToDefaultConfig(void)
+{
+#if defined(MPFS_USE_EEPROM) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
+	XEEBeginWrite(0x0000);
+	XEEWrite(0x00);
+	XEEEndWrite();
+#elif defined(MPFS_USE_SPI_FLASH) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
+    SPIFlashBeginWrite(0x0000);
+    SPIFlashWrite(0x00);
 #endif
 }
 

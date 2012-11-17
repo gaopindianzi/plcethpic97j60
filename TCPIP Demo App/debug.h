@@ -13,8 +13,10 @@
 extern void DebugString(const char * ramstr);
 extern void DebugStringNum(const char * str,unsigned int num);
 extern void DebugTask(void);
+extern void ResetTask(void);
 
 extern void DebugTcpTask(void);
+extern void DiscoverTask(void);
 
 
 #define  DEBUGINFO(str)    if(THISINFO)do{ DebugString##str; }while(0)

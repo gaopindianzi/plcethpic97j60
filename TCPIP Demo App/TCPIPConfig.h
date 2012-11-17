@@ -146,7 +146,7 @@
  *   To clear EEPROM, hold BUTTON0, reset the board, and continue
  *   holding until the LEDs flash.  Release, and reset again.
  */
-#define MY_DEFAULT_HOST_NAME			"MCHPBOARD"
+#define MY_DEFAULT_HOST_NAME			"SZJRD"
 
 #define MY_DEFAULT_MAC_BYTE1            (0x00)
 #define MY_DEFAULT_MAC_BYTE2            (0x04)
@@ -158,7 +158,7 @@
 #define MY_DEFAULT_IP_ADDR_BYTE1        (192ul)
 #define MY_DEFAULT_IP_ADDR_BYTE2        (168ul)
 #define MY_DEFAULT_IP_ADDR_BYTE3        (1ul)
-#define MY_DEFAULT_IP_ADDR_BYTE4        (110ul)
+#define MY_DEFAULT_IP_ADDR_BYTE4        (250ul)
 
 #define MY_DEFAULT_MASK_BYTE1           (255ul)
 #define MY_DEFAULT_MASK_BYTE2           (255ul)
@@ -273,7 +273,7 @@
  *   Define the maximum number of available UDP Sockets, and whether
  *   or not to include a checksum on packets being transmitted.
  */
-#define MAX_UDP_SOCKETS     (10u)
+#define MAX_UDP_SOCKETS     (15u)
 #define UDP_USE_TX_CHECKSUM		// This slows UDP TX performance by nearly 50%
 
 
