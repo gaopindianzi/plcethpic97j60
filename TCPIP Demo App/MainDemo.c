@@ -87,8 +87,16 @@
 // Include all headers for any enabled TCPIP Stack functions
 #include "TCPIP Stack/TCPIP.h"
 
+
 // Include functions specific to this stack application
 #include "MainDemo.h"
+
+
+#include "debug.h"
+
+#define  THISINFO        1
+#define  THISERROR       1
+#define  THISASSERT      1
 
 // Declare AppConfig structure and some other supporting stack variables
 APP_CONFIG AppConfig;
@@ -165,6 +173,11 @@ static void ProcessIO(void);
 	}
 #endif
 
+/***************/
+/*  移植的变量 */
+/***************/
+unsigned char led_reg;
+
 //
 // Main application entry point.
 //
@@ -196,16 +209,19 @@ int main(void)
 	#endif
 
 	// Initialize Stack and application related NV variables into AppConfig.
+	putrsUART((ROM char*)"\r\n InitAppConfig().");
 	InitAppConfig();
 
     // Initiates board setup process if button is depressed 
 	// on startup
-    if(BUTTON0_IO == 0u)
+    if(0) //BUTTON0_IO == 1u)
     {
 		#if (defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
 		// Invalidate the EEPROM contents if BUTTON0 is held down for more than 4 seconds
 		TICK StartTime = TickGet();
 		LED_PUT(0x00);
+
+		putrsUART((ROM char*)"\r\n init board default config.");
 				
 		while(BUTTON0_IO == 0u)
 		{
@@ -241,12 +257,14 @@ int main(void)
 
 	// Initialize core stack layers (MAC, ARP, TCP, UDP) and
 	// application modules (HTTP, SNMP, etc.)
+	putrsUART((ROM char*)"\r\n init statck.");
     StackInit();
 
 	// Initialize any application-specific modules or functions/
 	// For this demo application, this only includes the
 	// UART 2 TCP Bridge
 	#if defined(STACK_USE_UART2TCP_BRIDGE)
+	putrsUART((ROM char*)"\r\n UART2TCPBridgeInit.");
 	UART2TCPBridgeInit();
 	#endif
 
@@ -261,6 +279,7 @@ int main(void)
     // job.
     // If a task needs very long time to do its job, it must be broken
     // down into smaller pieces so that other tasks can have CPU time.
+	putrsUART((ROM char*)"\r\n run in while loop.");
     while(1)
     {
         // Blink LED0 (right most one) every second.
@@ -312,6 +331,14 @@ int main(void)
 		#endif
 
 		ProcessIO();
+
+        #if DEBUG_ON
+	    //DebugTask();
+		//DebugTcpTask();
+		DiscoverTask();
+		ResetTask();
+        #endif
+
 
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service
@@ -432,7 +459,30 @@ static void InitializeBoard(void)
 #if !defined(EXPLORER_16)	// Pin multiplexed with a button on EXPLORER_16 
 	LED7_TRIS = 0;
 #endif
-	LED_PUT(0x00);
+
+
+	RUN_LED_TRIS = 0;
+	RUN_LED_IO = 1;
+	
+	IP_CONFIG_TRIS = 1;  //输入口
+
+	//RELAY初始化
+	RELAY_OUT_0 = 1;
+	RELAY_OUT_1 = 1;
+	RELAY_OUT_2 = 1;
+	RELAY_OUT_3 = 1;
+	RELAY_OUT_4 = 1;
+	RELAY_OUT_5 = 1;
+	RELAY_OUT_6 = 1;
+	RELAY_OUT_TRIS_0 = 0;
+	RELAY_OUT_TRIS_1 = 0;
+	RELAY_OUT_TRIS_2 = 0;
+	RELAY_OUT_TRIS_3 = 0;
+	RELAY_OUT_TRIS_4 = 0;
+	RELAY_OUT_TRIS_5 = 0;
+	RELAY_OUT_TRIS_6 = 0;
+
+	//LED_PUT(0x00);
 
 #if defined(__18CXX)
 	// Enable 4x/5x PLL on PIC18F87J10, PIC18F97J60, etc.
@@ -645,8 +695,11 @@ static void InitAppConfig(void)
     BYTE *p;
 #endif
 
-	AppConfig.Flags.bIsDHCPEnabled = TRUE;
-	AppConfig.Flags.bInConfigMode = TRUE;
+	//AppConfig.Flags.bIsDHCPEnabled = TRUE;
+	//AppConfig.Flags.bInConfigMode = TRUE;
+	AppConfig.Flags.bIsDHCPEnabled = FALSE;
+	AppConfig.Flags.bInConfigMode = FALSE;
+
 	memcpypgm2ram((void*)&AppConfig.MyMACAddr, (ROM void*)SerializedMACAddress, sizeof(AppConfig.MyMACAddr));
 //	{
 //		_prog_addressT MACAddressAddress;
@@ -694,6 +747,18 @@ static void InitAppConfig(void)
 		SPIFlashReadArray(0x01, (BYTE*)&AppConfig, sizeof(AppConfig));
 	else
 		SaveAppConfig();
+#endif
+}
+
+void ResetToDefaultConfig(void)
+{
+#if defined(MPFS_USE_EEPROM) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
+	XEEBeginWrite(0x0000);
+	XEEWrite(0x00);
+	XEEEndWrite();
+#elif defined(MPFS_USE_SPI_FLASH) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
+    SPIFlashBeginWrite(0x0000);
+    SPIFlashWrite(0x00);
 #endif
 }
 

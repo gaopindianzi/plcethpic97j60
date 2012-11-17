@@ -72,7 +72,7 @@
 //#define STACK_USE_SSL_SERVER			// SSL server socket support (Requires SW300052)
 //#define STACK_USE_SSL_CLIENT			// SSL client socket support (Requires SW300052)
 #define STACK_USE_DHCP_CLIENT
-#define STACK_USE_DHCP_SERVER
+//#define STACK_USE_DHCP_SERVER
 //#define STACK_USE_FTP_SERVER
 #define STACK_USE_SMTP_CLIENT
 //#define STACK_USE_SNMP_SERVER
@@ -146,7 +146,7 @@
  *   To clear EEPROM, hold BUTTON0, reset the board, and continue
  *   holding until the LEDs flash.  Release, and reset again.
  */
-#define MY_DEFAULT_HOST_NAME			"MCHPBOARD"
+#define MY_DEFAULT_HOST_NAME			"SZJRD"
 
 #define MY_DEFAULT_MAC_BYTE1            (0x00)
 #define MY_DEFAULT_MAC_BYTE2            (0x04)
@@ -158,11 +158,11 @@
 #define MY_DEFAULT_IP_ADDR_BYTE1        (192ul)
 #define MY_DEFAULT_IP_ADDR_BYTE2        (168ul)
 #define MY_DEFAULT_IP_ADDR_BYTE3        (1ul)
-#define MY_DEFAULT_IP_ADDR_BYTE4        (110ul)
+#define MY_DEFAULT_IP_ADDR_BYTE4        (250ul)
 
 #define MY_DEFAULT_MASK_BYTE1           (255ul)
 #define MY_DEFAULT_MASK_BYTE2           (255ul)
-#define MY_DEFAULT_MASK_BYTE3           (0ul)
+#define MY_DEFAULT_MASK_BYTE3           (255ul)
 #define MY_DEFAULT_MASK_BYTE4           (0ul)
 
 #define MY_DEFAULT_GATE_BYTE1           (192ul)
@@ -226,6 +226,7 @@
 		#define TCP_PURPOSE_DEFAULT 9
 		#define TCP_PURPOSE_BERKELEY_SERVER 10
 		#define TCP_PURPOSE_BERKELEY_CLIENT 11
+        #define TCP_PURPOSE_CMD_SERVER      12
 	#define END_OF_TCP_SOCKET_TYPES
 	
 	#if defined(__TCP_C)
@@ -252,17 +253,18 @@
 		{
 			//{TCP_PURPOSE_GENERIC_TCP_CLIENT, TCP_ETH_RAM, 125, 100},
 			//{TCP_PURPOSE_GENERIC_TCP_SERVER, TCP_ETH_RAM, 20, 20},
-			{TCP_PURPOSE_TELNET, TCP_ETH_RAM, 150, 20},
+			//{TCP_PURPOSE_TELNET, TCP_ETH_RAM, 150, 20},
 			//{TCP_PURPOSE_FTP_COMMAND, TCP_ETH_RAM, 100, 40},
 			//{TCP_PURPOSE_FTP_DATA, TCP_ETH_RAM, 0, 128},
-			{TCP_PURPOSE_TCP_PERFORMANCE_TX, TCP_ETH_RAM, 256, 1},
+			//{TCP_PURPOSE_TCP_PERFORMANCE_TX, TCP_ETH_RAM, 256, 1},
 			//{TCP_PURPOSE_TCP_PERFORMANCE_RX, TCP_ETH_RAM, 40, 360},
-			{TCP_PURPOSE_UART_2_TCP_BRIDGE, TCP_ETH_RAM, 256, 256},
+			{TCP_PURPOSE_UART_2_TCP_BRIDGE, TCP_ETH_RAM, 256, 128},
 			{TCP_PURPOSE_HTTP_SERVER, TCP_ETH_RAM, 200, 200},
 			{TCP_PURPOSE_HTTP_SERVER, TCP_ETH_RAM, 200, 200},
 			{TCP_PURPOSE_DEFAULT, TCP_ETH_RAM, 200, 200},
-			{TCP_PURPOSE_BERKELEY_SERVER, TCP_ETH_RAM, 25, 20},
+			//{TCP_PURPOSE_BERKELEY_SERVER, TCP_ETH_RAM, 25, 20},
 			//{TCP_PURPOSE_BERKELEY_CLIENT, TCP_ETH_RAM, 125, 100},
+			{TCP_PURPOSE_CMD_SERVER,TCP_ETH_RAM,128,128},
 		};
 		#define END_OF_TCP_CONFIGURATION
 	#endif
@@ -271,7 +273,7 @@
  *   Define the maximum number of available UDP Sockets, and whether
  *   or not to include a checksum on packets being transmitted.
  */
-#define MAX_UDP_SOCKETS     (10u)
+#define MAX_UDP_SOCKETS     (15u)
 #define UDP_USE_TX_CHECKSUM		// This slows UDP TX performance by nearly 50%
 
 
