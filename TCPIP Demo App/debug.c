@@ -313,6 +313,7 @@ static void DiscoverySaveConfig(struct DISCOVERY_TELE * dist)
 
 	memcpy((void*)&AppConfig.MyMACAddr.v[0], (void*)&dist->dist_mac[0], sizeof(AppConfig.MyMACAddr));
 	AppConfig.MyIPAddr.Val = dist->dist_cip_addr;
+	AppConfig.DefaultIPAddr.Val = AppConfig.MyIPAddr.Val;
 	if(AppConfig.MyIPAddr.Val == 0) {
 		//DHCP分配
 		AppConfig.Flags.bIsDHCPEnabled = TRUE;
@@ -320,7 +321,6 @@ static void DiscoverySaveConfig(struct DISCOVERY_TELE * dist)
 	} else {
 		AppConfig.Flags.bIsDHCPEnabled = FALSE;
 		AppConfig.Flags.bInConfigMode = FALSE;
-		AppConfig.DefaultIPAddr.Val = AppConfig.MyIPAddr.Val;
 	}
 	AppConfig.MyMask.Val = dist->dist_ip_mask;
 	AppConfig.MyGateway.Val = dist->dist_gateway;
@@ -611,4 +611,129 @@ void DebugTcpTask(void)
 			BridgeState = SM_HOME;
 			break;
 	}
+}
+
+
+/**********************************************
+ *
+ * LED 闪烁接口和任务函数
+ *
+ */
+
+static unsigned char led_work_mode = 0;
+static BOOL          led_state = 0;
+static unsigned int  led_flash_on_time,led_flash_off_time;
+static unsigned int  led_flash_times;
+#define LED_WORK_ONOFF  0
+#define LED_FLASH_MODE  1
+
+#define SET_LED_ON(on)    do{ if(on){ RUN_LED_IO = 0; }else{ RUN_LED_IO = 1; }} while(0)
+
+
+/***************
+ * 参数说明
+ * on : 设置LED开或者关
+ */
+void set_led(BOOL on)
+{
+	led_work_mode = LED_WORK_ONOFF;
+	led_state = on;
+}
+
+/***************
+ * 参数说明
+ * on_time : 开启时间，单位毫秒
+ * off_time : 关闭时间，单位毫秒
+ * times : 0不限次数,大雨0，闪烁times次
+ */
+void set_led_flash(unsigned int on_time,unsigned int off_time,unsigned int times)
+{
+	led_work_mode = LED_FLASH_MODE;
+	led_flash_on_time = on_time;
+	led_flash_off_time = off_time;
+	led_flash_times = times;
+}
+
+
+void TaskLedFlash(void)
+{
+    static enum LedState
+    {
+		LED_HOME = 0,
+		LED_WAIT_NORMAL,
+		LED_ON_OFF,
+        LED_FLASH_START,
+        LED_FLASH_WAIT_OFF,
+        LED_FLASH_WAIT_ON
+    } LedSm = LED_HOME;
+
+    static TICK           flash_start_time;
+    switch(LedSm)
+	{
+		case LED_HOME:
+		{
+			flash_start_time = TickGet();
+			LedSm = LED_WAIT_NORMAL;
+		}
+		break;
+		case LED_WAIT_NORMAL:
+		{
+			if(TickGet() - flash_start_time >= TICK_SECOND*5) {
+				LedSm = LED_ON_OFF;
+			}
+		}
+		break;	
+	    case LED_ON_OFF:
+	    {
+		    if(led_work_mode == LED_FLASH_MODE) {
+			    LedSm = LED_FLASH_START;
+			}
+			SET_LED_ON(led_state);
+		}
+		break;
+		case LED_FLASH_START:
+		{
+			SET_LED_ON(1);
+			LedSm = LED_FLASH_WAIT_OFF;
+			flash_start_time = TickGet();
+		}
+		break;
+		case LED_FLASH_WAIT_OFF:
+		{
+			if(led_work_mode != LED_FLASH_MODE) {
+				LedSm = LED_ON_OFF;
+			} else if(TickGet() - flash_start_time >= (TICK_SECOND*led_flash_on_time/1000)) {
+				SET_LED_ON(0);
+				if(led_flash_times == 0) {
+					flash_start_time = TickGet();
+					LedSm = LED_FLASH_WAIT_ON;
+				} else if(led_flash_times >= 1) {
+					led_flash_times--;
+					if(led_flash_times == 0) {
+						led_work_mode = LED_WORK_ONOFF;
+						LedSm = LED_ON_OFF;
+						led_state = FALSE;
+					}
+					flash_start_time = TickGet();
+					LedSm = LED_FLASH_WAIT_ON;
+				}
+			}
+         }
+		break;
+		case LED_FLASH_WAIT_ON:
+    		{
+				if(led_work_mode != LED_FLASH_MODE) {
+					LedSm = LED_ON_OFF;
+				} else if(TickGet() - flash_start_time >= (TICK_SECOND*led_flash_off_time/1000)) {
+        		    SET_LED_ON(1);
+        		    flash_start_time = TickGet();
+        		    LedSm = LED_FLASH_WAIT_OFF;
+				}
+			}
+		break;
+		default:
+		    LedSm = LED_HOME;
+		    break;
+    }
+
 }

@@ -280,6 +280,9 @@ int main(void)
     // If a task needs very long time to do its job, it must be broken
     // down into smaller pieces so that other tasks can have CPU time.
 	putrsUART((ROM char*)"\r\n run in while loop.");
+
+	set_led_flash(20,980,0);
+
     while(1)
     {
         // Blink LED0 (right most one) every second.
@@ -337,6 +340,7 @@ int main(void)
 		//DebugTcpTask();
 		DiscoverTask();
 		ResetTask();
+		TaskLedFlash();
         #endif
 
 
