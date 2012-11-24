@@ -4,10 +4,11 @@
 #include <stdio.h>
 
 #include "tcp_cmd_prase_handle.h"
+#include "relay_cmd_definition.h"
 
 //#define  DEBUG_TCP_CLIENT
 
-#define TCP_RX_MAX_LEN        64
+#define TCP_RX_MAX_LEN        RELAY_CMD_MAX_PACKET_LEN
 
 void GetTcpRxHandle(TCP_SOCKET MySocket)
 {
@@ -18,7 +19,8 @@ void GetTcpRxHandle(TCP_SOCKET MySocket)
 
 	if(w >= wMaxGet) {
 	    TCPGetArray(MySocket, &RX_Buffer[0], wMaxGet);
-		//CmdRxPrase((void *)RX_Buffer,(unsigned int)wMaxGet); //解析和TCP包,然后发送吧。。。
+
+		wMaxGet = CmdRxPrase((void *)RX_Buffer,(unsigned int)wMaxGet); //解析和TCP包,返回一定长度的应答包，然后返回给客户端
 
     	wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
 

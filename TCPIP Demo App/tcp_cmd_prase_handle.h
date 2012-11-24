@@ -1,7 +1,7 @@
-#ifndef __TCP_CMD_TASK_H__
-#define __TCP_CMD_TASK_H__
+#ifndef __TCP_CMD_PRASE_HANDLE_H__
+#define __TCP_CMD_PRASE_HANDLE_H__
 
-extern void CmdRxPrase(void * pdat,unsigned int len);
+extern unsigned int CmdRxPrase(void * pdat,unsigned int len);
 
 #endif
 
