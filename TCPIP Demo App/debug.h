@@ -18,7 +18,7 @@ extern void TaskLedFlash(void);
 extern void set_led_flash(unsigned int on_time,unsigned int off_time,unsigned int times);
 
 
-extern void DebugTcpTask(void);
+//extern void DebugTcpTask(void);
 extern void DiscoverTask(void);
 
 

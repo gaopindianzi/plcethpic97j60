@@ -91,6 +91,7 @@
 // Include functions specific to this stack application
 #include "MainDemo.h"
 
+#include "tcp_cmd_task.h"
 
 #include "debug.h"
 
@@ -342,6 +343,10 @@ int main(void)
 		ResetTask();
 		TaskLedFlash();
         #endif
+
+		Tcp0CmdTask();
+		Tcp1CmdTask();
+		Tcp2CmdTask();
 
 
         // If the DHCP lease has changed recently, write the new

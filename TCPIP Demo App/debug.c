@@ -115,17 +115,17 @@ void DebugTask(void)
 			{
 				DebugTaskInit();
 				DebugSM = DEBUG_DNS_IP;
-				RELAY_OUT_0 = 0;
+				//RELAY_OUT_0 = 0;
 			}
 			break;
 		case DEBUG_DNS_IP:
 			{
 				char buffer[32];
-				RELAY_OUT_5 = 1;
-				RELAY_OUT_4 = 1;
-				RELAY_OUT_3 = 1;
-				RELAY_OUT_2 = 1;
-				RELAY_OUT_1 = 0;
+				//RELAY_OUT_5 = 1;
+				//RELAY_OUT_4 = 1;
+				//RELAY_OUT_3 = 1;
+				//RELAY_OUT_2 = 1;
+				//RELAY_OUT_1 = 0;
 				if(!DNSBeginUsage()) {
 					break;
 				}
@@ -138,7 +138,7 @@ void DebugTask(void)
 			break;
 		case DEBUG_DNS_WAIT:
 			{
-				RELAY_OUT_2 = 0;
+				//RELAY_OUT_2 = 0;
 				if(!DNSIsResolved(&hostip)) {
 					break;
 				}
@@ -151,7 +151,7 @@ void DebugTask(void)
 			break;
 		case DEBUG_DNS_CLOSE:
 			{
-				RELAY_OUT_3 = 0;
+				//RELAY_OUT_3 = 0;
 				if(!DNSEndUsage()) {
 					if((TickGet() - StartTime) > TICK_SECOND*10) {
 						DebugSM = DEBUG_DNS_IP;
@@ -164,7 +164,7 @@ void DebugTask(void)
 			break;
 		case DEBUG_RUN:
 			{
-				RELAY_OUT_4 = 0;
+				//RELAY_OUT_4 = 0;
 				if(TickGet() - StartTime > TICK_SECOND) {
 					StartTime = TickGet();
 					//DebugPrintString("haha\r\n");
@@ -175,11 +175,11 @@ void DebugTask(void)
 				}
 
 				
-				RELAY_OUT_5 = 0;
+				//RELAY_OUT_5 = 0;
 
 				DebugSM = DEBUG_DNS_IP;
 
-				RUN_LED_IO = !RUN_LED_IO;
+				//RUN_LED_IO = !RUN_LED_IO;
 				
 
 
@@ -380,7 +380,7 @@ void DiscoverTask(void)
 	            if(MySocket == INVALID_UDP_SOCKET)
 		            break;
 
-				RELAY_OUT_0 = 0;
+				//RELAY_OUT_0 = 0;
 
 				TaskSM = DISCOVERY_REQUEST;
 			}
@@ -424,14 +424,14 @@ void DiscoverTask(void)
 							/* Store configuration. */
 							DiscoverySaveConfig(&dist);
 
-							RELAY_OUT_2 = !RELAY_OUT_2;
+							//RELAY_OUT_2 = !RELAY_OUT_2;
 					} else if(dist.dist_type == DIST_RESET) {
 						//÷ÿ∆Ù
-						RELAY_OUT_3 = !RELAY_OUT_3;
+						//RELAY_OUT_3 = !RELAY_OUT_3;
 					}
 				} else {
 					UDPDiscard();
-					RELAY_OUT_4 = !RELAY_OUT_4;
+					//RELAY_OUT_4 = !RELAY_OUT_4;
 				}
 			}
 			break;
@@ -448,7 +448,7 @@ void DiscoverTask(void)
 				//
 				UDPFlush();
 
-				RELAY_OUT_1 = !RELAY_OUT_1;
+				//RELAY_OUT_1 = !RELAY_OUT_1;
 
 				TaskSM = DISCOVERY_LISTEN;
 			}
@@ -491,7 +491,7 @@ void ResetTask(void)
 	case IDLE:
 		{
 			if(!IP_CONFIG_IO) {
-				RELAY_OUT_5 = 0;
+				//RELAY_OUT_5 = 0;
 				StartTime = TickGet();
 				TaskSM++;
 			}
@@ -501,7 +501,7 @@ void ResetTask(void)
 		{
 			if(TickGet() - StartTime < TICK_SECOND*5) {
 				if(IP_CONFIG_IO) {
-					RELAY_OUT_5 = 1;
+					//RELAY_OUT_5 = 1;
 					TaskSM--;
 					break;
 				}
@@ -522,6 +522,8 @@ void ResetTask(void)
 
 
 
+
+#if 0
 //#define  DEBUG_TCP_CLIENT
 
 void DebugTcpTask(void)
@@ -612,6 +614,9 @@ void DebugTcpTask(void)
 			break;
 	}
 }
+
+
+#endif
 
 
 /**********************************************

@@ -51,7 +51,7 @@
 #ifndef _MAINDEMO_H
 #define _MAINDEMO_H
 
-#define BAUD_RATE       (19200)		// bps
+#define BAUD_RATE       (115200)		// bps
 
 #if !defined(THIS_IS_STACK_APPLICATION)
 	extern BYTE AN0String[8];
