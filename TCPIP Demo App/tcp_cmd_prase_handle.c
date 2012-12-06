@@ -12,7 +12,7 @@
 
 #include "tcp_cmd_prase_handle.h"
 #include "relay_cmd_definition.h"
-
+#include "hal_io_interface.h"
 
 
 
@@ -127,31 +127,73 @@ unsigned int CmdGetIoOutValue(CmdHead * cmd,unsigned int len)
 	return len;
 }
 
+/*************************************************************
+ * 功能：命令解析函数
+ *       解析和TCP包,返回一定长度的应答包，然后返回和发送给客户端
+ * 输入：
+ *     pdat      :  输入的当前socket数据
+ *     len       :  接收到的指令数据总长度
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
 
-typedef unsigned int      (*CmdCallFunc)(CmdHead * cmd,unsigned int len);
-typedef struct _CmdCallArryMap
+unsigned int CmdRxPrase(void * pdat,unsigned int len)
 {
-  unsigned char       cmd_id;
-  CmdCallFunc         CmdCall;
-} CmdCallArryMap;
-
-//CmdCallFunc abc = CmdRevertIoOutIndex;
-
-#if 0
-ROM CmdCallArryMap cell_may_array[] = 
-{
-	//{CMD_READ_REGISTER,CmdReadRegister},
-	//{CMD_WRITE_REGISTER,CmdWriteRegister},
-//	{CMD_GET_IO_OUT_VALUE,CmdGetIoOutValue},
-	//{CMD_SET_IO_OUT_VALUE,CmdSetIoOutValue},
-	//{CMD_REV_IO_SOME_BIT,(CmdCallFunc)CmdRevertIoOutIndex},
-	//{CMD_SET_IO_ONE_BIT,CmdSetIoOutOneBit},
-	//{CMD_CLR_IO_ONE_BIT,CmdClrIoOutOneBit},
-	//{CMD_REV_IO_ONE_BIT,CmdRevIoOutOneBit},
-	//{CMD_GET_IO_IN_VALUE,CmdGetIoInValue},
-    //{CMD_SET_IP_CONFIG,CmdSetIpConfig},
-    //{CMD_GET_IP_CONFIG,CmdGetIpConfig},
-    //{CMD_GET_INPUT_CTL_MODE_INDEX,CmdGetInputCtlModeIndex},
+	CmdHead * rcmd = (CmdHead * )pdat;
+	switch(rcmd->cmd)
+	{
+	default:
+		break;
+	case CMD_READ_REGISTER:
+		{
+		}
+		break;
+	case CMD_WRITE_REGISTER:
+		{
+		}
+		break;
+	case CMD_GET_IO_OUT_VALUE:
+		{
+		}
+		break;
+	case CMD_SET_IO_OUT_VALUE:
+		{
+		}
+		break;
+	case CMD_REV_IO_SOME_BIT: return CmdRevertIoOutIndex(rcmd,len);
+	case CMD_SET_IO_ONE_BIT:
+		{
+		}
+		break;
+	case CMD_CLR_IO_ONE_BIT:
+		{
+		}
+		break;
+	case CMD_REV_IO_ONE_BIT:
+		{
+		}
+		break;
+	case CMD_GET_IO_IN_VALUE:
+		{
+		}
+		break;
+	case CMD_SET_IP_CONFIG:
+		{
+		}
+		break;
+	case CMD_GET_IP_CONFIG:
+		{
+		}
+		break;
+	case CMD_GET_INPUT_CTL_MODE_INDEX:
+		{
+		}
+		break;
     //{CMD_SET_INPUT_CTL_MODE_INDEX,CmdSetInputCtlModeIndex},
 	//{CMD_GET_INPUT_CTL_MODE,CmdReadInputControl},
 	//{CMD_SET_INPUT_CTL_MODE,CmdWriteInputControl},
@@ -172,16 +214,8 @@ ROM CmdCallArryMap cell_may_array[] =
 	//{CMD_SET_HOST_ADDRESS,CmdSetRemoteHostAddress},
 	//{CMD_GET_HOST_ADDRESS,CmdGetRemoteHostAddress},
 	//{CMD_SET_SYSTEM_RESET,CmdSetSystemReset},
-	{0,NULL}
-};
-
-#endif
-
-
-
-unsigned int CmdRxPrase(void * pdat,unsigned int len)
-{
-	return len / 2;
+	}
+	return 0;
 }
 
 
