@@ -282,7 +282,7 @@ int main(void)
     // down into smaller pieces so that other tasks can have CPU time.
 	putrsUART((ROM char*)"\r\n run in while loop.");
 
-	set_led_flash(20,980,0);
+	set_led_flash(20,1500,0);
 
     while(1)
     {
@@ -490,6 +490,16 @@ static void InitializeBoard(void)
 	RELAY_OUT_TRIS_4 = 0;
 	RELAY_OUT_TRIS_5 = 0;
 	RELAY_OUT_TRIS_6 = 0;
+	// ‰»Î
+	DIG_INPUT_TRIS_0 = 1;
+	DIG_INPUT_TRIS_1 = 1;
+	DIG_INPUT_TRIS_2 = 1;
+	DIG_INPUT_TRIS_3 = 1;
+	DIG_INPUT_TRIS_4 = 1;
+	DIG_INPUT_TRIS_5 = 1;
+	DIG_INPUT_TRIS_6 = 1;
+	DIG_INPUT_TRIS_7 = 1;
+	DIG_INPUT_TRIS_8 = 1;
 
 	//LED_PUT(0x00);
 

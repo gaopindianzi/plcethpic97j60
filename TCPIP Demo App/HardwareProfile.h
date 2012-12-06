@@ -1313,6 +1313,22 @@
 	// ‰»Î≤ø∑÷
     #define  DIG_INPUT_TRIS_0       (TRISE5)
     #define  DIG_INPUT_IO_0         (RE5)
+	#define  DIG_INPUT_TRIS_1       (TRISE6)
+	#define  DIG_INPUT_IO_1         (RE6)
+	#define  DIG_INPUT_TRIS_2       (TRISE7)
+	#define  DIG_INPUT_IO_2         (RE7)
+	#define  DIG_INPUT_TRIS_3       (TRISD0)
+	#define  DIG_INPUT_IO_3         (RD0)
+	#define  DIG_INPUT_TRIS_4       (TRISD1)
+	#define  DIG_INPUT_IO_4         (RD1)
+	#define  DIG_INPUT_TRIS_5       (TRISD2)
+	#define  DIG_INPUT_IO_5         (RD2)
+	#define  DIG_INPUT_TRIS_6       (TRISD3)
+	#define  DIG_INPUT_IO_6         (RD3)
+	#define  DIG_INPUT_TRIS_7       (TRISD4)
+	#define  DIG_INPUT_IO_7         (RD4)
+	#define  DIG_INPUT_TRIS_8       (TRISD5)
+	#define  DIG_INPUT_IO_8         (RD5)
 
 	// ENC28J60 I/O pins
 	#define ENC_RST_TRIS		led_reg //(TRISD3)	// Not connected by default

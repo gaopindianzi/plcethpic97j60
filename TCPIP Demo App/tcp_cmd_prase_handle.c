@@ -110,7 +110,6 @@ error:
 /*************************************************************
  * 功能：读某些继电器的状态
  * 输入：
- *     MySocket  :  TCP socket
  *     cmd       :  控制协议命令头指针，数据紧跟其后
  *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
  * 输出：
@@ -133,6 +132,78 @@ unsigned int CmdGetIoOutValue(CmdHead * cmd,unsigned int len)
 }
 
 /*************************************************************
+ * 功能：设置或清零或反转一个IO口的输出
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ *    setmode    :  设置模式：0表示设置，1表示清零，2表示反转
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdSetClrVerIoOutOneBit(CmdHead * cmd,unsigned int len,unsigned char setmode)
+{
+	unsigned char reg;
+	unsigned int  num;
+	CmdIoOneBit      *   io  =  (CmdIoOneBit *)GET_CMD_DATA(cmd);
+    CmdIoValue       *  sio   = (CmdIoValue *)GET_CMD_DATA(cmd);
+	//
+    if(len < sizeof(CmdHead) + sizeof(CmdIoOneBit)) {
+	  cmd->cmd_option    = CMD_ACK_KO;
+	  sio->io_count = io_out_get_bits(0,sio->io_value,32);
+      goto error;
+    }
+    //
+    cmd->cmd_option    = CMD_ACK_OK;	
+	num = io->io_bitnum[1];
+	num <<= 8;
+	num += io->io_bitnum[0];
+	if(setmode == 0) {
+		reg = 0x01;
+	    io_out_set_bits(num,&reg,1);
+	} else if(setmode == 1) {
+		reg = 0x00;
+	    io_out_set_bits(num,&reg,1);
+	} else if(setmode == 2) {
+		reg = 0x01;
+		io_out_convert_bits(num,&reg,1);
+	}
+	sio->io_count = io_out_get_bits(0,sio->io_value,32);
+error:
+    cmd->cmd_len       = sizeof(CmdIoValue);
+    cmd->data_checksum = 0;
+    return sizeof(CmdHead)+sizeof(CmdIoValue);
+}
+
+/*************************************************************
+ * 功能：读取数字量的输入状态
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdGetIoInValue(CmdHead * cmd,unsigned int len)
+{
+    CmdIoValue    *  sio  = (CmdIoValue *)GET_CMD_DATA(cmd);
+	sio->io_count = io_in_get_bits(0,sio->io_value,32);
+    cmd->cmd_option    = CMD_ACK_OK;
+    cmd->cmd_len       = sizeof(CmdIoValue);
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead)+sizeof(CmdIoValue);
+}
+
+
+/*************************************************************
  * 功能：命令解析函数
  *       解析和TCP包,返回一定长度的应答包，然后返回和发送给客户端
  * 输入：
@@ -150,6 +221,10 @@ unsigned int CmdGetIoOutValue(CmdHead * cmd,unsigned int len)
 unsigned int CmdRxPrase(void * pdat,unsigned int len)
 {
 	CmdHead * rcmd = (CmdHead * )pdat;
+	if(len < sizeof(CmdHead)) { //小雨规定的头大小
+		return 0;
+	}
+	//满足我们的协议头大小
 	switch(rcmd->cmd)
 	{
 	default:
@@ -165,22 +240,10 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	case CMD_GET_IO_OUT_VALUE: return CmdGetIoOutValue(rcmd,len);
 	case CMD_SET_IO_OUT_VALUE: return CmdSetIoOutValue(rcmd,len);
 	case CMD_REV_IO_SOME_BIT:  return CmdRevertIoOutIndex(rcmd,len);
-	case CMD_SET_IO_ONE_BIT:
-		{
-		}
-		break;
-	case CMD_CLR_IO_ONE_BIT:
-		{
-		}
-		break;
-	case CMD_REV_IO_ONE_BIT:
-		{
-		}
-		break;
-	case CMD_GET_IO_IN_VALUE:
-		{
-		}
-		break;
+	case CMD_SET_IO_ONE_BIT:   return CmdSetClrVerIoOutOneBit(rcmd,len,0);
+	case CMD_CLR_IO_ONE_BIT:   return CmdSetClrVerIoOutOneBit(rcmd,len,1);
+	case CMD_REV_IO_ONE_BIT:   return CmdSetClrVerIoOutOneBit(rcmd,len,2);
+	case CMD_GET_IO_IN_VALUE:  return CmdGetIoInValue(rcmd,len);
 	case CMD_SET_IP_CONFIG:
 		{
 		}

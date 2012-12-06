@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #define REAL_IO_OUT_NUM          7
-#define REAL_IO_INPUT_NUM        8
+#define REAL_IO_INPUT_NUM        9
 
 
 #define BITS_TO_BS(bit_num)    (((bit_num)+7)/8)
@@ -158,3 +158,60 @@ unsigned int io_out_get_bits(unsigned int startbits,unsigned char * iobits,unsig
 	}
 	return bitcount;
 }
+
+
+/*************************************************************
+ * 功能：读取数字量的输入值
+ * 输入：
+ *     startbits  :  起始位
+ *     bitcount   :  位的数量
+ * 输出：
+ *     iobits     :  输出缓冲区，把输出的IO输入值位变量放到这个数组中
+ * 返回值：
+ *     输出一个整形，代表输出位的数量
+ */
+unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount)
+{
+	unsigned int  i,index;
+	unsigned char Bb,Bi;
+	unsigned char buffer[2] = {0,0};
+
+	memset(iobits,0,(bitcount+7)/8);
+
+	if(startbits >= REAL_IO_INPUT_NUM || bitcount == 0) {
+		return 0;
+	}
+	//进一步判断是否符合条件
+	if((REAL_IO_INPUT_NUM - startbits) < bitcount) {
+		bitcount = REAL_IO_INPUT_NUM - startbits;
+	}
+	//开始设置
+	index = 0;
+	//
+	Bi = 0;
+	Bi |= DIG_INPUT_IO_0?0x01:0x00;
+	Bi |= DIG_INPUT_IO_1?0x02:0x00;
+	Bi |= DIG_INPUT_IO_2?0x04:0x00;
+	Bi |= DIG_INPUT_IO_3?0x08:0x00;
+	Bi |= DIG_INPUT_IO_4?0x10:0x00;
+	Bi |= DIG_INPUT_IO_5?0x20:0x00;
+	Bi |= DIG_INPUT_IO_6?0x40:0x00;
+	Bi |= DIG_INPUT_IO_7?0x80:0x00;
+	buffer[0] = Bi;
+	Bi = 0;
+	Bi |= DIG_INPUT_IO_8?0x01:0x00;
+	buffer[1] = Bi;
+
+	for(i=startbits;i<startbits+bitcount;i++) {
+	    Bb = index / 8;
+	    Bi = index % 8;
+		if(buffer[i/8]&code_msk[i%8]) {
+			iobits[Bb] |=  code_msk[Bi];
+		} else {
+			iobits[Bb] &= ~code_msk[Bi];
+		}
+		index++;
+	}
+	return bitcount;
+}
+
