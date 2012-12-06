@@ -16,7 +16,9 @@ void GetTcpRxHandle(TCP_SOCKET MySocket)
 	WORD wMaxPut, wMaxGet;
 	WORD w = sizeof(RX_Buffer);
 	wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
-
+	if(wMaxGet == 0) {
+		return ;
+	}
 	if(w >= wMaxGet) {
 	    TCPGetArray(MySocket, &RX_Buffer[0], wMaxGet);
 
@@ -24,13 +26,10 @@ void GetTcpRxHandle(TCP_SOCKET MySocket)
 
     	wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
 
-	    if(wMaxPut >= wMaxGet) {
+	    if(wMaxGet > 0 && wMaxPut >= wMaxGet) {
 			TCPPutArray(MySocket, RX_Buffer, wMaxGet);
-		} else {
+			TCPFlush(MySocket);
 		}
-		TCPFlush(MySocket);
-	} else {
-		putrsUART((ROM char*)"\r\TCP CMD: get too bit packet!");
 	}
 }
 

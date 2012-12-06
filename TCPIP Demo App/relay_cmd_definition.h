@@ -72,10 +72,10 @@ typedef struct _CmdHead
   uint8_t  cmd;
   uint16_t cmd_index;
   uint8_t  cmd_option;
-#if 0
+#if 1  //mfc°æ±¾
   uint8_t  pad;
   uint8_t  cmd_len;
-#else
+#else  //qt°æ±¾
   uint8_t  cmd_len;
   uint8_t  pad;
 #endif

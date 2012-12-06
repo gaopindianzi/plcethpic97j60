@@ -101,6 +101,15 @@ unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsig
 		}
 		index++;
 	}
+	//…Ë÷√IOø⁄
+	RELAY_OUT_0 = (io_out[0]&0x01)?0:1;
+	RELAY_OUT_1 = (io_out[0]&0x02)?0:1;
+	RELAY_OUT_2 = (io_out[0]&0x04)?0:1;
+	RELAY_OUT_3 = (io_out[0]&0x08)?0:1;
+	RELAY_OUT_4 = (io_out[0]&0x10)?0:1;
+	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
+	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
+	//∑µªÿ
 	return bitcount;
 }
 

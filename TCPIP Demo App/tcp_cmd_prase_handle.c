@@ -15,19 +15,37 @@
 #include "hal_io_interface.h"
 
 
-
+#define THISINFO           1
+#define THISERROR          1
 
 
 uint8_t    command_state;
 
 
 
+/*************************************************************
+ * 功能：计算校验值
+ * 输入：
+ *     buffer  :  输入的数据
+ *     len     :  属于的长度，字节单位
+ * 输出：
+ * 返回值：
+ *     输出一个字节，代表校验和
+ */
+static unsigned char CalCheckSum(void * buffer,unsigned int len)
+{
+  unsigned char sum = 0;
+  unsigned int  i;
+  for(i=0;i<len;i++) {
+    sum += ((unsigned char *)buffer)[i];
+  }
+  return sum;
+}
 
 
 /*************************************************************
  * 功能：翻转某些继电器
  * 输入：
- *     MySocket  :  TCP socket
  *     cmd       :  控制协议命令头指针，数据紧跟其后
  *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
  * 输出：
@@ -38,43 +56,57 @@ uint8_t    command_state;
  *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
  *     的数据。
  */
-
-
 unsigned int CmdRevertIoOutIndex(CmdHead * cmd,unsigned int len)
 {
-#if 0
-	int rc = -1;
-	const uint8_t outsize = sizeof(CmdIobitmap);
-	uint8_t  buffer[sizeof(CmdHead)+outsize];
-    CmdHead          * tcmd  = (CmdHead *)buffer;
-    CmdIobitmap      *  sio  = (CmdIobitmap *)GET_CMD_DATA(tcmd);
     CmdIobitmap      *   io  = (CmdIobitmap *)GET_CMD_DATA(cmd);
     //
-    if(datasize < sizeof(CmdIobitmap)) {
-      if(THISERROR)printf("ERROR:Cmd CmdSetIoOutBit Datasize ERROR\r\n");
-	  tcmd->cmd_option    = CMD_ACK_KO;
+	if(THISINFO)putrsUART((ROM char*)"\r\n CmdRevertIoOutIndex().");
+
+    if(len < sizeof(CmdHead)+sizeof(CmdIobitmap)) {
+      if(THISERROR)putrsUART((ROM char*)"\r\n CmdRevertIoOutIndex() datasize error.");
+	  cmd->cmd_option    = CMD_ACK_KO;
+	  io_out_get_bits(0,io->io_msk,32);
       goto error;
     }
     //
-    tcmd->cmd_option    = CMD_ACK_OK;	
-	//rc = _ioctl(_fileno(sys_varient.iofile), IO_SIG_BITMAP, io->io_msk);
-	//rc = _ioctl(_fileno(sys_varient.iofile), IO_OUT_GET, sio->io_msk);
+    cmd->cmd_option    = CMD_ACK_OK;	
 	io_out_convert_bits(0,io->io_msk,32);
-	io_out_get_bits(0,sio->io_msk,32);
-	rc = 0;
-
+	io_out_get_bits(0,io->io_msk,32);
 error:
-    tcmd->cmd           = CMD_REV_IO_SOME_BIT;
-    tcmd->cmd_index     = cmd->cmd_index;
-    tcmd->cmd_len       = outsize;
-    tcmd->data_checksum = CalCheckSum(sio,outsize);
-    //
-    NutTcpSend(sock,tcmd,(int)(sizeof(CmdHead)+outsize));
-    if(THISINFO)printf("CmdSetIoOutBit()!\r\n");
-    return rc;
-#endif
-	return len;
+    cmd->cmd_len       = sizeof(CmdIobitmap);
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead)+sizeof(CmdIobitmap);
 }
+/*************************************************************
+ * 功能：设置某些继电器
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdSetIoOutValue(CmdHead * cmd,unsigned int len)
+{
+    CmdIoValue    *   io  = (CmdIoValue *)GET_CMD_DATA(cmd);
+    if(len < sizeof(CmdHead)+sizeof(CmdIoValue)) {
+        cmd->cmd_option  = CMD_ACK_KO;
+		io->io_count = io_out_get_bits(0,io->io_value,32);
+		goto error;
+    }
+	io_out_set_bits(0,io->io_value,io->io_count);
+	io->io_count = io_out_get_bits(0,io->io_value,32); //32个继电器，这个指令固定支持32位比特数量。
+	cmd->cmd_option    = CMD_ACK_OK;
+    cmd->cmd_len       = sizeof(CmdIoValue);
+    cmd->data_checksum = 0;
+error:
+    return sizeof(CmdHead)+sizeof(CmdIoValue);
+}
+
 /*************************************************************
  * 功能：读某些继电器的状态
  * 输入：
@@ -92,39 +124,12 @@ error:
 
 unsigned int CmdGetIoOutValue(CmdHead * cmd,unsigned int len)
 {
-#if 0
-	int rc = -1;
-	const uint8_t outsize = sizeof(CmdIoValue);
-	uint8_t  buffer[sizeof(CmdHead)+outsize];
-	CmdHead       * tcmd  = (CmdHead *)buffer;
-	CmdIoValue    *  sio  = (CmdIoValue *)GET_CMD_DATA(tcmd);
-	//
-	//uint32_t tmp;
-    datasize = datasize;
-    //
-    //sio->io_count    = 32;
-    //sio->io_value[0] = (uint8_t)((relay_msk >> 0) & 0xFF);
-    //sio->io_value[1] = (uint8_t)((relay_msk >> 8) & 0xFF);;
-    //sio->io_value[2] = (uint8_t)((relay_msk >> 16) & 0xFF);;
-    //sio->io_value[3] = (uint8_t)((relay_msk >> 24) & 0xFF);;
-	//rc = _ioctl(_fileno(sys_varient.iofile), GET_OUT_NUM, &tmp);
-	//sio->io_count = (unsigned char)tmp;
-	//rc = _ioctl(_fileno(sys_varient.iofile), IO_OUT_GET, sio->io_value);
-	//
+	CmdIoValue    *  sio  = (CmdIoValue *)GET_CMD_DATA(cmd);
 	sio->io_count = io_out_get_bits(0,sio->io_value,32);
-	rc = 0;
-    //
-    tcmd->cmd_option    = CMD_ACK_OK;
-    tcmd->cmd           = CMD_GET_IO_OUT_VALUE;
-    tcmd->cmd_index     = cmd->cmd_index;
-    tcmd->cmd_len       = outsize;
-    tcmd->data_checksum = CalCheckSum(sio,outsize);
-    
-    NutTcpSend(sock,tcmd,(int)(sizeof(CmdHead)+outsize));
-    if(THISINFO)printf("CmdGetIoOutValue OK\r\n");
-    return rc;
-#endif
-	return len;
+    cmd->cmd_option    = CMD_ACK_OK;
+    cmd->cmd_len       = sizeof(CmdIoValue);
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead)+sizeof(CmdIoValue);
 }
 
 /*************************************************************
@@ -157,15 +162,9 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 		{
 		}
 		break;
-	case CMD_GET_IO_OUT_VALUE:
-		{
-		}
-		break;
-	case CMD_SET_IO_OUT_VALUE:
-		{
-		}
-		break;
-	case CMD_REV_IO_SOME_BIT: return CmdRevertIoOutIndex(rcmd,len);
+	case CMD_GET_IO_OUT_VALUE: return CmdGetIoOutValue(rcmd,len);
+	case CMD_SET_IO_OUT_VALUE: return CmdSetIoOutValue(rcmd,len);
+	case CMD_REV_IO_SOME_BIT:  return CmdRevertIoOutIndex(rcmd,len);
 	case CMD_SET_IO_ONE_BIT:
 		{
 		}
@@ -207,6 +206,7 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	//{CMD_GET_RTC_VALUE,CmdGetRtcValue},
 	//{CMD_SET_INPUT_CTL_ON_MSK,CmdSetInputValidMsk},
 	//{CMD_GET_INPUT_CTL_ON_MSK,CmdGetInputValidMsk},
+
 #ifdef APP_TIMEIMG_ON
 	//{CMD_SET_TIMING_ON_MSK,CmdSetTimingValidMsk},
 	//{CMD_GET_TIMING_ON_MSK,CmdGetTimingValidMsk},
