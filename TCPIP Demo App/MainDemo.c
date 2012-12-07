@@ -181,6 +181,8 @@ static void ProcessIO(void);
 /***************/
 unsigned char led_reg;
 
+void DebugStringHex(const char * str,unsigned long num,const char * tail);
+
 //
 // Main application entry point.
 //

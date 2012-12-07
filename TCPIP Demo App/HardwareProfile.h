@@ -1332,11 +1332,11 @@
 	//DS1302 I/O pins		实时时钟
 	#define RTC_RST_TRIS		(TRISG4)  //(TRISGbits.TRISG4)
 	#define RTC_RST_IO			(LATG4)   //(LATGbits.LATG4)
-	#define RTC_SCL_TRIS		(TRISG5)  //(TRISGbits.TRISG6)
-	#define RTC_SCL_IO			(LATG5)   //(LATGbits.LATG6)
-	#define RTC_SDA_TRIS		(TRISG6)  //(TRISGbits.TRISG5)
-	#define RTC_SDA_IN			(RG6)     //(PORTGbits.RG5)
-	#define RTC_SDA_OUT			(LATG6)   //(LATGbits.LATG5)
+	#define RTC_SCL_TRIS		(TRISG6)  //(TRISGbits.TRISG6)
+	#define RTC_SCL_IO			(LATG6)   //(LATGbits.LATG6)
+	#define RTC_SDA_TRIS		(TRISG5)  //(TRISGbits.TRISG5)
+	#define RTC_SDA_IN			(RG5)     //(PORTGbits.RG5)
+	#define RTC_SDA_OUT			(LATG5)   //(LATGbits.LATG5)
 
 	//DS18B20 I/O pins		单总线温度传感器
 	#define Temp_DQ_TRIS		(TRISH5) //(TRISHbits.TRISH5)

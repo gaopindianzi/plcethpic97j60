@@ -103,14 +103,15 @@ BYTE ReadDS1302( BYTE ds_addr )
 //Overview: DS1302初始化
 void DS1302_Init(void)
 {
-	BYTE i;
+	//BYTE i;
 	RTC_RST_IO = 0;
 	RTC_SCL_IO = 0;
 	RTC_RST_TRIS = 0;
 	RTC_SCL_TRIS = 0;
 	RTC_SDA_TRIS = 1;
+#if 0
 	i = ReadDS1302(Add_RAM0);
-	if(i != 0x5A)
+	if(0) //i != 0x5A)
 	{
 		WriteDS1302( Add_CONTROL,0x00 );		//关闭写保护
 		WriteDS1302( Add_MIN,0x08 );			//预置分钟时间
@@ -124,6 +125,7 @@ void DS1302_Init(void)
 		WriteDS1302( Add_RAM0,0x5A);			//RAM0单元写入0x55，防止再次初始化
 		WriteDS1302( Add_CONTROL,0x80 );		//打开写保护 
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -221,7 +223,7 @@ void UpdataRTC(BYTE *buffer)
 	RTC_RST_IO = 0;
 	RTC_SDA_TRIS = 1;
 //	WriteDS1302( Add_SEC,0x30 );			//启动时钟
-//	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护
+	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护
 }
 
 //////////////////////////////////////////////////////////////////////

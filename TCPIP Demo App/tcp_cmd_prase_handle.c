@@ -13,6 +13,7 @@
 #include "tcp_cmd_prase_handle.h"
 #include "relay_cmd_definition.h"
 #include "hal_io_interface.h"
+#include "DS1302.h"
 
 
 #define THISINFO           1
@@ -222,7 +223,152 @@ unsigned int CmdDefaultAck(CmdHead * cmd,unsigned int len)
     cmd->data_checksum = 0;
 	return sizeof(CmdHead);
 }
-
+/*************************************************************
+ * 功能：写寄存器，实现通用接口
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdWriteRegister(CmdHead * cmd,unsigned int len)
+{
+	cmd->cmd_option    = CMD_ACK_KO;
+    cmd->cmd_len       = 0;
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead);
+}
+/*************************************************************
+ * 功能：读寄存器，实现通用接口
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdReadRegister(CmdHead * cmd,unsigned int len)
+{
+	unsigned int  addr;
+	unsigned int  datlen;
+	CmdRegister * preg = (CmdRegister *)GET_CMD_DATA(cmd);
+	if(len < (sizeof(CmdHead) + sizeof(CmdRegister) - 1)) {
+		cmd->cmd_option    = CMD_ACK_KO;
+		cmd->cmd_len       = 0;
+		goto error;
+	}
+	addr = preg->reg_addr_hi;
+	addr <<= 8;
+	addr += preg->reg_addr_lo;
+	datlen = preg->reg_len_hi;
+	datlen <<= 8;
+	datlen += preg->reg_len_lo;
+	if(addr == 0) {
+		if(datlen >= sizeof(CmdIoValue)) {
+			CmdIoValue * sio = (CmdIoValue *)preg;
+			sio->io_count = io_out_get_bits(0,sio->io_value,32);
+			cmd->cmd_option    = CMD_ACK_OK;
+			cmd->cmd_len = sizeof(CmdIoValue);
+		}
+	}
+	if(addr == 1) {
+		if(datlen >= sizeof(CmdIoValue)) {
+			CmdIoValue * sio = (CmdIoValue *)preg;
+			sio->io_count = io_in_get_bits(0,sio->io_value,32);
+			cmd->cmd_option    = CMD_ACK_OK;
+			cmd->cmd_len = sizeof(CmdIoValue);
+		}
+	}
+	if(addr == 2) {
+		if(datlen >= sizeof(DS1302_VAL)) {
+			//读DS1302寄存器
+			ReadRTC(preg);
+			cmd->cmd_option    = CMD_ACK_OK;
+			cmd->cmd_len = sizeof(DS1302_VAL);
+		}
+	}
+error:
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead) + cmd->cmd_len;
+}
+/*************************************************************
+ * 功能：设置实时时钟
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdSetNewRtcValue(CmdHead * cmd,unsigned int len)
+{
+	time_type *  pt  = (time_type *)GET_CMD_DATA(cmd);
+	if(len < (sizeof(CmdHead) + sizeof(time_type))) {
+		cmd->cmd_option    = CMD_ACK_KO;
+		cmd->cmd_len       = 0;
+		goto error;
+	}
+	do{
+		DS1302_VAL tval;
+		tval.SEC = pt->sec;
+		tval.MIN = pt->min;
+		tval.HR  = pt->hour;
+		tval.DATE = pt->day;
+		tval.MONTH = pt->mon;
+		tval.YEAR = pt->year;
+		Hex2BCD(&tval,sizeof(tval));
+		UpdataRTC(&tval);
+	}while(0);
+	cmd->cmd_option    = CMD_ACK_OK;
+	cmd->cmd_len       = 0;
+error:
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead) + cmd->cmd_len;
+}
+/*************************************************************
+ * 功能：读取实时时钟
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdGetRtcValue(CmdHead * cmd,unsigned int len)
+{
+	time_type_e *  pt  = (time_type_e *)GET_CMD_DATA(cmd);
+	DS1302_VAL tval;
+	ReadRTC(&tval);
+	BCD2Hex(&tval,sizeof(tval));
+	pt->sec = tval.SEC;
+	pt->min = tval.MIN;
+	pt->hour = tval.HR;
+	pt->day = tval.DATE;
+	pt->mon = tval.MONTH;
+	pt->year = tval.YEAR;
+	pt->week = tval.DAY;
+	cmd->cmd_option    = CMD_ACK_OK;
+	cmd->cmd_len       = sizeof(time_type_e);
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead) + cmd->cmd_len;
+}
 
 /*************************************************************
  * 功能：命令解析函数
@@ -248,9 +394,8 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	//满足我们的协议头大小
 	switch(rcmd->cmd)
 	{
-	case CMD_READ_REGISTER:  return CmdDefaultAck(rcmd,len);
-	case CMD_WRITE_REGISTER: return CmdDefaultAck(rcmd,len);
-
+	case CMD_READ_REGISTER:    return CmdReadRegister(rcmd,len);
+	case CMD_WRITE_REGISTER:   return CmdWriteRegister(rcmd,len);
 	case CMD_GET_IO_OUT_VALUE: return CmdGetIoOutValue(rcmd,len);
 	case CMD_SET_IO_OUT_VALUE: return CmdSetIoOutValue(rcmd,len);
 	case CMD_REV_IO_SOME_BIT:  return CmdRevertIoOutIndex(rcmd,len);
@@ -272,8 +417,8 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	case CMD_GET_TIMING_INFO:          return CmdDefaultAck(rcmd,len);
 	case CMD_SET_TIMING_INFO:          return CmdDefaultAck(rcmd,len);
 
-	case CMD_SET_RTC_VALUE:            return CmdDefaultAck(rcmd,len);
-	case CMD_GET_RTC_VALUE:            return CmdDefaultAck(rcmd,len);
+	case CMD_SET_RTC_VALUE:            return CmdSetNewRtcValue(rcmd,len);
+	case CMD_GET_RTC_VALUE:            return CmdGetRtcValue(rcmd,len);
 	case CMD_SET_INPUT_CTL_ON_MSK:     return CmdDefaultAck(rcmd,len);
 	case CMD_GET_INPUT_CTL_ON_MSK:     return CmdDefaultAck(rcmd,len);
 

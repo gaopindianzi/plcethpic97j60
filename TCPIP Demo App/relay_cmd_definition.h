@@ -88,12 +88,13 @@ typedef struct _CmdHead
 //读写寄存器的通用接口
 typedef struct _CmdRegister
 {
-  uint8_t  reg_addr_hi;
   uint8_t  reg_addr_lo;
-  uint8_t  reg_len_hi;
+  uint8_t  reg_addr_hi;
   uint8_t  reg_len_lo;
+  uint8_t  reg_len_hi;
   uint8_t  reg_base;
 } CmdRegister;
+
 
 //读写新控制模式专用数据结构
 typedef struct _CmdInputControl
@@ -213,6 +214,16 @@ typedef struct _time_type
 	uint8_t    min;
 	uint8_t    sec;
 } time_type;
+typedef struct _time_type_e
+{
+	uint8_t    year;
+	uint8_t    mon;
+	uint8_t    day;
+	uint8_t    hour;
+	uint8_t    min;
+	uint8_t    sec;
+	uint8_t    week;
+} time_type_e;
 typedef struct _timing_node
 {
 	uint8_t    addr[2];  //定时端口地址编码（板上输出口地址范围为[0][0] ~ [0][16]），第5路输出就是addr[0]=4,addr[1]=0
