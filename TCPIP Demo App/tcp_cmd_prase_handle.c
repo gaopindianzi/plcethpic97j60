@@ -202,6 +202,27 @@ unsigned int CmdGetIoInValue(CmdHead * cmd,unsigned int len)
 	return sizeof(CmdHead)+sizeof(CmdIoValue);
 }
 
+/*************************************************************
+ * 功能：一些不支持的指令，直接调用默认的函数返回即可
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdDefaultAck(CmdHead * cmd,unsigned int len)
+{
+	cmd->cmd_option    = CMD_ACK_KO;
+    cmd->cmd_len       = 0;
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead);
+}
+
 
 /*************************************************************
  * 功能：命令解析函数
@@ -221,22 +242,15 @@ unsigned int CmdGetIoInValue(CmdHead * cmd,unsigned int len)
 unsigned int CmdRxPrase(void * pdat,unsigned int len)
 {
 	CmdHead * rcmd = (CmdHead * )pdat;
-	if(len < sizeof(CmdHead)) { //小雨规定的头大小
+	if(len < sizeof(CmdHead)) { //小于规定的头大小
 		return 0;
 	}
 	//满足我们的协议头大小
 	switch(rcmd->cmd)
 	{
-	default:
-		break;
-	case CMD_READ_REGISTER:
-		{
-		}
-		break;
-	case CMD_WRITE_REGISTER:
-		{
-		}
-		break;
+	case CMD_READ_REGISTER:  return CmdDefaultAck(rcmd,len);
+	case CMD_WRITE_REGISTER: return CmdDefaultAck(rcmd,len);
+
 	case CMD_GET_IO_OUT_VALUE: return CmdGetIoOutValue(rcmd,len);
 	case CMD_SET_IO_OUT_VALUE: return CmdSetIoOutValue(rcmd,len);
 	case CMD_REV_IO_SOME_BIT:  return CmdRevertIoOutIndex(rcmd,len);
@@ -244,42 +258,33 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	case CMD_CLR_IO_ONE_BIT:   return CmdSetClrVerIoOutOneBit(rcmd,len,1);
 	case CMD_REV_IO_ONE_BIT:   return CmdSetClrVerIoOutOneBit(rcmd,len,2);
 	case CMD_GET_IO_IN_VALUE:  return CmdGetIoInValue(rcmd,len);
-	case CMD_SET_IP_CONFIG:
-		{
-		}
-		break;
-	case CMD_GET_IP_CONFIG:
-		{
-		}
-		break;
-	case CMD_GET_INPUT_CTL_MODE_INDEX:
-		{
-		}
-		break;
-    //{CMD_SET_INPUT_CTL_MODE_INDEX,CmdSetInputCtlModeIndex},
-	//{CMD_GET_INPUT_CTL_MODE,CmdReadInputControl},
-	//{CMD_SET_INPUT_CTL_MODE,CmdWriteInputControl},
-	//{CMD_GET_IO_NAME,CmdGetIoName},
-	//{CMD_SET_IO_NAME,CmdSetIoName},
-#ifdef APP_TIMEIMG_ON
-	//{CMD_GET_TIMING_INFO,CmdGetIoTimingInfo},
-	//{CMD_SET_TIMING_INFO,CmdSetIoTimingInfo},
-#endif
-	//{CMD_SET_RTC_VALUE,CmdSetNewRtcValue},
-	//{CMD_GET_RTC_VALUE,CmdGetRtcValue},
-	//{CMD_SET_INPUT_CTL_ON_MSK,CmdSetInputValidMsk},
-	//{CMD_GET_INPUT_CTL_ON_MSK,CmdGetInputValidMsk},
 
-#ifdef APP_TIMEIMG_ON
-	//{CMD_SET_TIMING_ON_MSK,CmdSetTimingValidMsk},
-	//{CMD_GET_TIMING_ON_MSK,CmdGetTimingValidMsk},
-#endif
-	//{CMD_SET_HOST_ADDRESS,CmdSetRemoteHostAddress},
-	//{CMD_GET_HOST_ADDRESS,CmdGetRemoteHostAddress},
-	//{CMD_SET_SYSTEM_RESET,CmdSetSystemReset},
+	case CMD_SET_IP_CONFIG:    return CmdDefaultAck(rcmd,len);
+	case CMD_GET_IP_CONFIG:    return CmdDefaultAck(rcmd,len);
+	case CMD_GET_INPUT_CTL_MODE_INDEX: return CmdDefaultAck(rcmd,len);
+	case CMD_SET_INPUT_CTL_MODE_INDEX: return CmdDefaultAck(rcmd,len);
+	case CMD_GET_INPUT_CTL_MODE:       return CmdDefaultAck(rcmd,len);
+	case CMD_SET_INPUT_CTL_MODE:       return CmdDefaultAck(rcmd,len);
+		/*日后加以修改*/
+	case CMD_GET_IO_NAME:              return CmdDefaultAck(rcmd,len);
+	case CMD_SET_IO_NAME:              return CmdDefaultAck(rcmd,len);
+		/* 时间指令*/
+	case CMD_GET_TIMING_INFO:          return CmdDefaultAck(rcmd,len);
+	case CMD_SET_TIMING_INFO:          return CmdDefaultAck(rcmd,len);
+
+	case CMD_SET_RTC_VALUE:            return CmdDefaultAck(rcmd,len);
+	case CMD_GET_RTC_VALUE:            return CmdDefaultAck(rcmd,len);
+	case CMD_SET_INPUT_CTL_ON_MSK:     return CmdDefaultAck(rcmd,len);
+	case CMD_GET_INPUT_CTL_ON_MSK:     return CmdDefaultAck(rcmd,len);
+
+        /* 定时指令*/
+	case CMD_SET_TIMING_ON_MSK:  return CmdDefaultAck(rcmd,len);
+	case CMD_GET_TIMING_ON_MSK:  return CmdDefaultAck(rcmd,len);
+
+	case CMD_SET_HOST_ADDRESS:   return CmdDefaultAck(rcmd,len);
+	case CMD_GET_HOST_ADDRESS:   return CmdDefaultAck(rcmd,len);
+	case CMD_SET_SYSTEM_RESET:   return CmdDefaultAck(rcmd,len);
+	default: 
+		return CmdDefaultAck(rcmd,len);
 	}
-	return 0;
 }
-
-
-

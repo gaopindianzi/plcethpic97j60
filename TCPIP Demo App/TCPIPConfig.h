@@ -90,6 +90,8 @@
 #define STACK_USE_DYNAMICDNS_CLIENT		// Dynamic DNS client module
 //#define STACK_USE_BERKELEY_API			// Berekely Sockets APIs are used
 
+#define STACK_USE_DS1302  //添加了DS1302实时时钟
+#define STACK_USE_DS18B20  //添加了温度传感器
 
 // =======================================================================
 //   Data Storage Options

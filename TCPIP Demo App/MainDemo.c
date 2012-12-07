@@ -92,6 +92,8 @@
 #include "MainDemo.h"
 
 #include "tcp_cmd_task.h"
+#include "DS1302.h"
+#include "DS18B20.h"
 
 #include "debug.h"
 
@@ -192,6 +194,14 @@ int main(void)
 
     // Initialize application specific hardware
     InitializeBoard();
+
+#if defined(STACK_USE_DS18B20)
+	DS18B20_Init();
+#endif
+
+#ifdef STACK_USE_DS1302
+	DS1302_Init();
+#endif
 
 	#if defined(USE_LCD)
 	// Initialize and display the stack version on the LCD

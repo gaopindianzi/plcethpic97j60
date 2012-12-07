@@ -79,4 +79,10 @@ void BerkeleyUDPClientDemo(void);
 void DisplayIPValue(IP_ADDR IPVal);
 
 
+
+#if defined(STACK_USE_DS1302)
+	#include "DS1302.h"
+#endif
+
+
 #endif // _MAINDEMO_H
