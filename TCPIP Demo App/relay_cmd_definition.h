@@ -51,9 +51,11 @@ typedef   DWORD  uint32_t;
 #define   CMD_SET_INPUT_CTL_MODE_INDEX   41
 #define   CMD_SET_INPUT_CTL_MODE         42
 #define   CMD_GET_INPUT_CTL_MODE         43
+#define   CMD_SET_IO_OUT_POWERDOWN_HOLD  44
+#define   CMD_GET_IO_OUT_POWERDOWN_HOLD  45
 //新增定时器接口
-#define   CMD_READ_REGISTER              80
-#define   CMD_WRITE_REGISTER             81
+#define   CMD_READ_REGISTER              80  //0x50
+#define   CMD_WRITE_REGISTER             81  //0x51
 
 
 

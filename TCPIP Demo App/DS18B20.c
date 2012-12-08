@@ -170,12 +170,13 @@ void Convert_T(void)
 }
 
 /**********************Read Temperature**********************************/
-void Read_Temperature(void)
+unsigned int Read_Temperature(void)
 {
 	Read_scratchPad( &ScratchPad );
 	TP = ScratchPad.TP_M;
 	TP = TP << 8;
 	TP |= ScratchPad.TP_L;
+	return TP;
 }
 
  /***********************Initial DS18B20*********************************/

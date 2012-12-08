@@ -14,7 +14,7 @@
 #include "relay_cmd_definition.h"
 #include "hal_io_interface.h"
 #include "DS1302.h"
-
+#include "DS18B20.h"
 
 #define THISINFO           1
 #define THISERROR          1
@@ -346,6 +346,30 @@ unsigned int CmdReadRegister(CmdHead * cmd,unsigned int len)
 		cmd->cmd_option    = CMD_ACK_OK;
 		cmd->cmd_len = 31;
 	}
+	if(addr == 4) {
+		//读出来的温度是摄氏度的16倍，除以16就是温度
+		unsigned int TP_temp = Read_Temperature();
+		unsigned char * pb = preg;
+#if 0
+		if(TP_temp & 0xf800l)
+		{
+			TP_temp = ~TP_temp + 1;
+			TP_temp = TP_temp >> 4;
+		}
+		else
+		{
+			TP_temp = TP_temp >> 4;
+		}
+#else
+		TP_temp *= 10;
+		TP_temp /= 16;
+#endif
+		pb[0] = TP_temp & 0xFF;
+		pb[1] = TP_temp >> 8;
+		cmd->cmd_option    = CMD_ACK_OK;
+		cmd->cmd_len = 2;
+		Convert_T();
+	}
 error:
     cmd->data_checksum = 0;
 	return sizeof(CmdHead) + cmd->cmd_len;
@@ -421,6 +445,58 @@ unsigned int CmdGetRtcValue(CmdHead * cmd,unsigned int len)
 }
 
 /*************************************************************
+ * 功能：设置继电器断电保持
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdSetIoOutPownDownHold(CmdHead * cmd,unsigned int len)
+{
+	CmdMode *  pt  = (CmdMode *)GET_CMD_DATA(cmd);
+	if(len < sizeof(CmdHead) + sizeof(CmdMode)) {
+		cmd->cmd_option    = CMD_ACK_KO;
+		cmd->cmd_len       = 0;
+		goto error;
+	}
+	set_io_out_power_down_hold(pt->mode);
+	pt->mode = get_io_out_power_down_hold();
+	cmd->cmd_option    = CMD_ACK_OK;
+	cmd->cmd_len       = sizeof(CmdMode);
+error:
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead) + cmd->cmd_len;
+}
+/*************************************************************
+ * 功能：读取继电器断电保持
+ * 输入：
+ *     cmd       :  控制协议命令头指针，数据紧跟其后
+ *     len       :  接收到的指令数据总长度，没有经过验证长度是否有效
+ * 输出：
+ *     cmd       :  输出的数据也保存在cmd指针的长度里面，长度最大不能
+ *                  超过预定的缓冲区(传入的缓冲数组大小：RELAY_CMD_MAX_PACKET_LEN)
+ * 返回值：
+ *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
+ *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
+ *     的数据。
+ */
+unsigned int CmdGetIoOutPownDownHold(CmdHead * cmd,unsigned int len)
+{
+	CmdMode *  pt  = (CmdMode *)GET_CMD_DATA(cmd);
+	pt->mode = get_io_out_power_down_hold();
+	cmd->cmd_option    = CMD_ACK_OK;
+	cmd->cmd_len       = sizeof(CmdMode);
+    cmd->data_checksum = 0;
+	return sizeof(CmdHead) + cmd->cmd_len;
+}
+
+/*************************************************************
  * 功能：命令解析函数
  *       解析和TCP包,返回一定长度的应答包，然后返回和发送给客户端
  * 输入：
@@ -479,6 +555,8 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	case CMD_SET_HOST_ADDRESS:   return CmdDefaultAck(rcmd,len);
 	case CMD_GET_HOST_ADDRESS:   return CmdDefaultAck(rcmd,len);
 	case CMD_SET_SYSTEM_RESET:   return CmdDefaultAck(rcmd,len);
+	case CMD_SET_IO_OUT_POWERDOWN_HOLD: return CmdSetIoOutPownDownHold(rcmd,len);
+	case CMD_GET_IO_OUT_POWERDOWN_HOLD: return CmdGetIoOutPownDownHold(rcmd,len);
 	default: 
 		return CmdDefaultAck(rcmd,len);
 	}

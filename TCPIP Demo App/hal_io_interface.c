@@ -4,6 +4,7 @@
 #include "DS1302.h"
 #include "hal_io_interface.h"
 
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,10 +32,35 @@ const unsigned char  code_msk[8] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
 
 void Io_Out_PowerInit(void)
 {
-	RtcRamRead(0,io_out,sizeof(io_out));
+	unsigned int base = GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,io_out_hold);
+	XEEBeginRead(base);
+	base = XEERead();
+	XEEEndRead();
+	if(base&0x01) {
+	    RtcRamRead(0,io_out,sizeof(io_out));
+	    io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
+	} else {
+		memset(io_out,0,sizeof(io_out));
+	}
 	io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
 }
 
+void set_io_out_power_down_hold(unsigned char hold_on)
+{
+	unsigned int base = GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,io_out_hold);
+	XEEBeginWrite(base);
+	XEEWrite(hold_on?0x01:0x00);
+	XEEEndWrite();
+}
+
+unsigned char get_io_out_power_down_hold(void)
+{
+	unsigned int base = GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,io_out_hold);
+	XEEBeginRead(base);
+	base = XEERead();
+	XEEEndRead();
+	return base & 0x01;
+}
 
 /*************************************************************
  * 功能：翻转某些输出位

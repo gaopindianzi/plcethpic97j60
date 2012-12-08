@@ -206,7 +206,7 @@ int main(void)
 	DS1302_Init();
 #endif
 
-	Io_Out_PowerInit();  //需要用到STACK_USE_DS1302条件
+	
 
 	#if defined(USE_LCD)
 	// Initialize and display the stack version on the LCD
@@ -223,6 +223,8 @@ int main(void)
 	#if defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2)
 	MPFSInit();
 	#endif
+
+	Io_Out_PowerInit();  //需要用到STACK_USE_DS1302条件
 
 	// Initialize Stack and application related NV variables into AppConfig.
 	putrsUART((ROM char*)"\r\n InitAppConfig().");

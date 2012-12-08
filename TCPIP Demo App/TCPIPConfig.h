@@ -148,7 +148,7 @@
  *   To clear EEPROM, hold BUTTON0, reset the board, and continue
  *   holding until the LEDs flash.  Release, and reset again.
  */
-#define MY_DEFAULT_HOST_NAME			"MCHPBOARD"
+#define MY_DEFAULT_HOST_NAME			"SZJRD"
 
 #define MY_DEFAULT_MAC_BYTE1            (0x00)
 #define MY_DEFAULT_MAC_BYTE2            (0x04)

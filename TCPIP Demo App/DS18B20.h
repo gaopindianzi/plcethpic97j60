@@ -35,7 +35,7 @@ void Skip_Rom(void);
 void Read_scratchPad(uchar *buffer);
 void Write_scratchPad(void);
 void Convert_T(void);
-void Read_Temperature(void);
+unsigned int Read_Temperature(void);
 void DS18B20_Init(void);
 
 #endif	//__DS18B20_H
