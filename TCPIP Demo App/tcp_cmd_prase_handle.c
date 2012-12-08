@@ -238,10 +238,55 @@ unsigned int CmdDefaultAck(CmdHead * cmd,unsigned int len)
  */
 unsigned int CmdWriteRegister(CmdHead * cmd,unsigned int len)
 {
-	cmd->cmd_option    = CMD_ACK_KO;
-    cmd->cmd_len       = 0;
+	unsigned int  addr;
+	unsigned int  datlen;
+	CmdRegister * preg = (CmdRegister *)GET_CMD_DATA(cmd);
+	if(len < (sizeof(CmdHead) + sizeof(CmdRegister) - 1)) {
+		cmd->cmd_option    = CMD_ACK_KO;
+		cmd->cmd_len       = 0;
+		goto error;
+	}
+	addr = preg->reg_addr_hi;
+	addr <<= 8;
+	addr += preg->reg_addr_lo;
+	datlen = preg->reg_len_hi;
+	datlen <<= 8;
+	datlen += preg->reg_len_lo;
+#if 0
+	if(addr == 0) {
+		if(datlen >= sizeof(CmdIoValue)) {
+			CmdIoValue * sio = (CmdIoValue *)preg;
+			sio->io_count = io_out_get_bits(0,sio->io_value,32);
+			cmd->cmd_option    = CMD_ACK_OK;
+			cmd->cmd_len = sizeof(CmdIoValue);
+		}
+	}
+	if(addr == 1) {
+		if(datlen >= sizeof(CmdIoValue)) {
+			CmdIoValue * sio = (CmdIoValue *)preg;
+			sio->io_count = io_in_get_bits(0,sio->io_value,32);
+			cmd->cmd_option    = CMD_ACK_OK;
+			cmd->cmd_len = sizeof(CmdIoValue);
+		}
+	}
+	if(addr == 2) {
+		if(datlen >= sizeof(DS1302_VAL)) {
+			//读DS1302寄存器
+			ReadRTC(preg);
+			cmd->cmd_option    = CMD_ACK_OK;
+			cmd->cmd_len = sizeof(DS1302_VAL);
+		}
+	}
+#endif
+	if(addr == 3) {
+		RtcRamWrite(0,&(preg->reg_base),datlen);
+		cmd->cmd_option    = CMD_ACK_OK;
+		RtcRamRead(0,preg,31);
+		cmd->cmd_len = 31;
+	}
+error:
     cmd->data_checksum = 0;
-	return sizeof(CmdHead);
+	return sizeof(CmdHead) + cmd->cmd_len;
 }
 /*************************************************************
  * 功能：读寄存器，实现通用接口
@@ -295,6 +340,11 @@ unsigned int CmdReadRegister(CmdHead * cmd,unsigned int len)
 			cmd->cmd_option    = CMD_ACK_OK;
 			cmd->cmd_len = sizeof(DS1302_VAL);
 		}
+	}
+	if(addr == 3) {
+		RtcRamRead(0,preg,31);
+		cmd->cmd_option    = CMD_ACK_OK;
+		cmd->cmd_len = 31;
 	}
 error:
     cmd->data_checksum = 0;

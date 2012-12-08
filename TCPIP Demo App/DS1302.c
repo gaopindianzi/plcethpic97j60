@@ -109,23 +109,20 @@ void DS1302_Init(void)
 	RTC_RST_TRIS = 0;
 	RTC_SCL_TRIS = 0;
 	RTC_SDA_TRIS = 1;
-#if 0
-	i = ReadDS1302(Add_RAM0);
-	if(0) //i != 0x5A)
+	if(1)
 	{
 		WriteDS1302( Add_CONTROL,0x00 );		//关闭写保护
-		WriteDS1302( Add_MIN,0x08 );			//预置分钟时间
-		WriteDS1302( Add_HR,0x20 );				//预置小时，24小时制
-		WriteDS1302( Add_DATE,0x08 );			//预置日期
-		WriteDS1302( Add_MONTH,0x08 );			//预置月份
-		WriteDS1302( Add_DAY,0x05 );			//预置星期
-		WriteDS1302( Add_YEAR,0x08 );			//预置年份
-		WriteDS1302( Add_CHARGER,0x0a6 );		//写充电控制寄存器，1010 0110，I=1mA
+		//WriteDS1302( Add_MIN,0x08 );			//预置分钟时间
+		//WriteDS1302( Add_HR,0x20 );				//预置小时，24小时制
+		//WriteDS1302( Add_DATE,0x08 );			//预置日期
+		//WriteDS1302( Add_MONTH,0x08 );			//预置月份
+		//WriteDS1302( Add_DAY,0x05 );			//预置星期
+		//WriteDS1302( Add_YEAR,0x08 );			//预置年份
+		WriteDS1302( Add_CHARGER,0xa6 );		//写充电控制寄存器，1010 0110，I=1mA
 		WriteDS1302( Add_SEC,0x08 );			//启动时钟
-		WriteDS1302( Add_RAM0,0x5A);			//RAM0单元写入0x55，防止再次初始化
+		//WriteDS1302( Add_RAM0,0x5A);			//RAM0单元写入0x55，防止再次初始化
 		WriteDS1302( Add_CONTROL,0x80 );		//打开写保护 
 	}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -224,6 +221,33 @@ void UpdataRTC(BYTE *buffer)
 	RTC_SDA_TRIS = 1;
 //	WriteDS1302( Add_SEC,0x30 );			//启动时钟
 	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护
+}
+/************************************************************
+ *  功能： 写RTC内存RAM
+ *
+ */
+void RtcRamRead(unsigned char addr,unsigned char * buffer,unsigned char len)
+{
+	unsigned char i;
+	unsigned char reg;
+	WriteDS1302( Add_CONTROL,0x00 );		//关闭写保护
+	for(i=0;i<len;i++) {
+		buffer[i] = ReadDS1302(Add_RAM0|0x01|(i<<1));
+	}
+	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护 
+}
+/************************************************************
+ *  功能： 读RTC内存RAM
+ *
+ */
+void RtcRamWrite(unsigned char addr,unsigned char * buffer,unsigned char len)
+{
+	unsigned char i;
+	WriteDS1302( Add_CONTROL,0x00 );		//关闭写保护
+	for(i=0;i<len;i++) {
+		WriteDS1302(Add_RAM0|(i<<1),buffer[i]);
+	}
+	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护 
 }
 
 //////////////////////////////////////////////////////////////////////

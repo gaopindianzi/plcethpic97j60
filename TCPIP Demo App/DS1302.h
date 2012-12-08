@@ -60,4 +60,8 @@ void UpdataRTC(BYTE *buffer);
 void delay1us(void);
 void Hex2BCD(BYTE *data, BYTE amount);
 void BCD2Hex(BYTE *data, BYTE amount);
+
+void RtcRamWrite(unsigned char addr,unsigned char * buffer,unsigned char len);
+void RtcRamRead(unsigned char addr,unsigned char * buffer,unsigned char len);
+
 #endif

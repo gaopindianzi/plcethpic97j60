@@ -5,7 +5,7 @@
 #if  defined(STACK_USE_DS18B20)
 
 char Set_Buff[3] = {0xd0,0xf5,0x7f};
-int TP;
+unsigned int TP;
 
 //uchar ScratchPad[9]={0};
 struct _ScratchPad
