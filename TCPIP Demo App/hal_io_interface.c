@@ -1,7 +1,8 @@
 #include "TCPIP Stack/TCPIP.h"
 
 #include "MainDemo.h"
-
+#include "DS1302.h"
+#include "hal_io_interface.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -17,6 +18,22 @@ unsigned char io_out[BITS_TO_BS(REAL_IO_OUT_NUM)] = {0};
 
 
 const unsigned char  code_msk[8] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+/*************************************************************
+ * 功能：初始化IO继电器的状态
+ * 输入：
+ *     startbits  :  起始位
+ *     iobits     :  位变量数组
+ *     bitcount   :  位的数量
+ * 输出：    
+ * 返回值：
+ *     输出一个整形，代表输出位的数量
+ */
+
+void Io_Out_PowerInit(void)
+{
+	RtcRamRead(0,io_out,sizeof(io_out));
+	io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
+}
 
 
 /*************************************************************
@@ -61,6 +78,8 @@ unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,u
 	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
 	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
 	//返回
+	RtcRamWrite(0,io_out,sizeof(io_out));
+	//
 	return bitcount;
 }
 
@@ -109,6 +128,8 @@ unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsig
 	RELAY_OUT_4 = (io_out[0]&0x10)?0:1;
 	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
 	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
+
+	RtcRamWrite(0,io_out,sizeof(io_out));
 	//返回
 	return bitcount;
 }
@@ -214,4 +235,3 @@ unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits,unsign
 	}
 	return bitcount;
 }
-

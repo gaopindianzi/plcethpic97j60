@@ -94,6 +94,7 @@
 #include "tcp_cmd_task.h"
 #include "DS1302.h"
 #include "DS18B20.h"
+#include "hal_io_interface.h"
 
 #include "debug.h"
 
@@ -204,6 +205,8 @@ int main(void)
 #ifdef STACK_USE_DS1302
 	DS1302_Init();
 #endif
+
+	Io_Out_PowerInit();  //需要用到STACK_USE_DS1302条件
 
 	#if defined(USE_LCD)
 	// Initialize and display the stack version on the LCD
