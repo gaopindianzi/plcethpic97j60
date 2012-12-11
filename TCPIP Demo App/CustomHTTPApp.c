@@ -54,6 +54,10 @@
 #define __CUSTOMHTTPAPP_C
 
 #include "TCPIP Stack/TCPIP.h"
+#include "DS18B20.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 #if defined(STACK_USE_HTTP2_SERVER)
 
@@ -186,19 +190,19 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 		// Seek out each of the four LED strings, and if it exists set the LED states
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led4");
 		if(ptr)
-			LED4_IO = (*ptr == '1');
+			RELAY_OUT_3 = (*ptr == '1');
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led3");
 		if(ptr)
-			LED3_IO = (*ptr == '1');
+			RELAY_OUT_2 = (*ptr == '1');
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led2");
 		if(ptr)
-			LED2_IO = (*ptr == '1');
+			RELAY_OUT_1 = (*ptr == '1');
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led1");
 		if(ptr)
-			LED1_IO = (*ptr == '1');
+			RELAY_OUT_0 = (*ptr == '1');
 	}
 	
 	// If it's the LED updater file
@@ -222,25 +226,25 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 		// Toggle the specified LED
 		switch(*ptr) {
 			case '1':
-				LED1_IO ^= 1;
+				RELAY_OUT_0 ^= 1;
 				break;
 			case '2':
-				LED2_IO ^= 1;
+				RELAY_OUT_1 ^= 1;
 				break;
 			case '3':
-				LED3_IO ^= 1;
+				RELAY_OUT_2 ^= 1;
 				break;
 			case '4':
-				LED4_IO ^= 1;
+				RELAY_OUT_3 ^= 1;
 				break;
 			case '5':
-				LED5_IO ^= 1;
+				RELAY_OUT_4 ^= 1;
 				break;
 			case '6':
-				LED6_IO ^= 1;
+				RELAY_OUT_5 ^= 1;
 				break;
 			case '7':
-				LED7_IO ^= 1;
+				RELAY_OUT_6 ^= 1;
 				break;
 		}
 		
@@ -1070,21 +1074,19 @@ static HTTP_IO_RESULT HTTPPostEmail(void)
 				
 			// Write the header and button strings
 			SMTPPutROMString((ROM BYTE*)"LEDs:,");
-			SMTPPut(LED0_IO + '0');
+			SMTPPut(RELAY_OUT_0 + '0');
 			SMTPPut(',');
-			SMTPPut(LED1_IO + '0');
+			SMTPPut(RELAY_OUT_1 + '0');
 			SMTPPut(',');
-			SMTPPut(LED2_IO + '0');
+			SMTPPut(RELAY_OUT_2 + '0');
 			SMTPPut(',');
-			SMTPPut(LED3_IO + '0');
+			SMTPPut(RELAY_OUT_3 + '0');
 			SMTPPut(',');
-			SMTPPut(LED4_IO + '0');
+			SMTPPut(RELAY_OUT_4 + '0');
 			SMTPPut(',');
-			SMTPPut(LED5_IO + '0');
+			SMTPPut(RELAY_OUT_5 + '0');
 			SMTPPut(',');
-			SMTPPut(LED6_IO + '0');
-			SMTPPut(',');
-			SMTPPut(LED7_IO + '0');
+			SMTPPut(RELAY_OUT_6 + '0');
 			SMTPPut('\r');
 			SMTPPut('\n');
 			SMTPFlush();
@@ -1334,6 +1336,23 @@ void HTTPPrint_version(void)
 	TCPPutROMString(sktHTTP, (ROM void*)VERSION);
 }
 
+void HTTPPrint_today_temp(void)
+{
+	char chr[8];
+	unsigned int t;
+	unsigned int tmp = Read_Temperature();
+	tmp *= 10;
+	tmp /= 16;
+	t = tmp / 10; //得到度数
+	uitoa(t,chr);
+	TCPPutString(sktHTTP,chr);
+	TCPPut(sktHTTP, '.');
+	t = tmp % 10; //得到小数点
+	uitoa(t,chr);
+	TCPPutString(sktHTTP,chr);
+	Convert_T();
+}
+
 
 
 
@@ -1372,28 +1391,26 @@ void HTTPPrint_led(WORD num)
 	switch(num)
 	{
 		case 0:
-			num = LED0_IO;
+			num = RELAY_OUT_0;
 			break;
 		case 1:
-			num = LED1_IO;
+			num = RELAY_OUT_1;
 			break;
 		case 2:
-			num = LED2_IO;
+			num = RELAY_OUT_2;
 			break;
 		case 3:
-			num = LED3_IO;
+			num = RELAY_OUT_3;
 			break;
 		case 4:
-			num = LED4_IO;
+			num = RELAY_OUT_4;
 			break;
 		case 5:
-			num = LED5_IO;
+			num = RELAY_OUT_5;
 			break;
 		case 6:
-			num = LED6_IO;
+			num = RELAY_OUT_6;
 			break;
-		case 7:
-			num = LED7_IO;
 			break;
 
 		default:
@@ -1411,28 +1428,26 @@ void HTTPPrint_ledSelected(WORD num, WORD state)
 	switch(num)
 	{
 		case 0:
-			num = LED0_IO;
+			num = RELAY_OUT_0;
 			break;
 		case 1:
-			num = LED1_IO;
+			num = RELAY_OUT_1;
 			break;
 		case 2:
-			num = LED2_IO;
+			num = RELAY_OUT_2;
 			break;
 		case 3:
-			num = LED3_IO;
+			num = RELAY_OUT_3;
 			break;
 		case 4:
-			num = LED4_IO;
+			num = RELAY_OUT_4;
 			break;
 		case 5:
-			num = LED5_IO;
+			num = RELAY_OUT_5;
 			break;
 		case 6:
-			num = LED6_IO;
+			num = RELAY_OUT_6;
 			break;
-		case 7:
-			num = LED7_IO;
 			break;
 
 		default:

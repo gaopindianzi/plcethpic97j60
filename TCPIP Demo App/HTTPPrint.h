@@ -48,6 +48,7 @@ void HTTPPrint_config_dns2(void);
 void HTTPPrint_reboot(void);
 void HTTPPrint_rebootaddr(void);
 void HTTPPrint_ddns_service(WORD);
+void HTTPPrint_today_temp(void);
 
 void HTTPPrint(DWORD callbackID)
 {
@@ -202,6 +203,9 @@ void HTTPPrint(DWORD callbackID)
 			break;
         case 0x00000031:
 			HTTPPrint_ddns_service(2);
+			break;
+        case 0x00000032:
+			HTTPPrint_today_temp();
 			break;
 		default:
 			// Output notification for undefined values

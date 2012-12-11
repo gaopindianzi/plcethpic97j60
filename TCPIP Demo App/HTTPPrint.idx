@@ -48,3 +48,4 @@
 +ddns_service(0)
 +ddns_service(1)
 +ddns_service(2)
++today_temp

@@ -35,6 +35,10 @@ void Skip_Rom(void);
 void Read_scratchPad(uchar *buffer);
 void Write_scratchPad(void);
 void Convert_T(void);
+
+/*********************
+ * 读出来的温度是正常温度的16倍
+ */
 unsigned int Read_Temperature(void);
 void DS18B20_Init(void);
 
