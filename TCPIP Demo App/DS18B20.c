@@ -179,6 +179,19 @@ unsigned int Read_Temperature(void)
 	return TP;
 }
 
+/************************************************************************
+ * 功能:  读取温度，精度是0.1摄氏度
+ */
+unsigned int ReadTemperatureXX_XC(void)
+{
+	unsigned int TP_temp;
+	Convert_T();
+	TP_temp = Read_Temperature();
+	TP_temp *= 10;
+	TP_temp /= 16;
+	return TP_temp;
+}
+
  /***********************Initial DS18B20*********************************/
 void DS18B20_Init(void)
 {

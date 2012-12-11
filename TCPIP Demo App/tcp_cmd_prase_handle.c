@@ -16,8 +16,8 @@
 #include "DS1302.h"
 #include "DS18B20.h"
 
-#define THISINFO           1
-#define THISERROR          1
+#define THISINFO           0
+#define THISERROR          0
 
 
 uint8_t    command_state;
@@ -347,23 +347,9 @@ unsigned int CmdReadRegister(CmdHead * cmd,unsigned int len)
 		cmd->cmd_len = 31;
 	}
 	if(addr == 4) {
-		//读出来的温度是摄氏度的16倍，除以16就是温度
-		unsigned int TP_temp = Read_Temperature();
+		//读出来的温度是摄氏度
+		unsigned int TP_temp = ReadTemperatureXX_XC();
 		unsigned char * pb = preg;
-#if 0
-		if(TP_temp & 0xf800l)
-		{
-			TP_temp = ~TP_temp + 1;
-			TP_temp = TP_temp >> 4;
-		}
-		else
-		{
-			TP_temp = TP_temp >> 4;
-		}
-#else
-		TP_temp *= 10;
-		TP_temp /= 16;
-#endif
 		pb[0] = TP_temp & 0xFF;
 		pb[1] = TP_temp >> 8;
 		cmd->cmd_option    = CMD_ACK_OK;
@@ -389,7 +375,7 @@ error:
  */
 unsigned int CmdSetNewRtcValue(CmdHead * cmd,unsigned int len)
 {
-	time_type *  pt  = (time_type *)GET_CMD_DATA(cmd);
+	time_type_e *  pt  = (time_type *)GET_CMD_DATA(cmd);
 	if(len < (sizeof(CmdHead) + sizeof(time_type))) {
 		cmd->cmd_option    = CMD_ACK_KO;
 		cmd->cmd_len       = 0;
@@ -403,6 +389,9 @@ unsigned int CmdSetNewRtcValue(CmdHead * cmd,unsigned int len)
 		tval.DATE = pt->day;
 		tval.MONTH = pt->mon;
 		tval.YEAR = pt->year;
+		if(len >= (sizeof(CmdHead) + sizeof(time_type_e))) {
+			tval.DAY = pt->week;
+		}
 		Hex2BCD(&tval,sizeof(tval));
 		UpdataRTC(&tval);
 	}while(0);

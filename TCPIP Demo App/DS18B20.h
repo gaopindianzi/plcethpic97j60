@@ -40,6 +40,7 @@ void Convert_T(void);
  * 读出来的温度是正常温度的16倍
  */
 unsigned int Read_Temperature(void);
+unsigned int ReadTemperatureXX_XC(void);
 void DS18B20_Init(void);
 
 #endif	//__DS18B20_H
