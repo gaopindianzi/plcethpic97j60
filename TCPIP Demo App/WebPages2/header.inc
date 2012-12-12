@@ -16,13 +16,13 @@
 <div id="title"><div class="right">以太网控制卡服务器</div><span id="hello">&nbsp;</span></div>
 
 <div id="menu">
-<a href="/index.htm">Overview</a>
-<a href="/dynvars.htm">Dynamic Variables</a>
-<a href="/forms.htm">Form Processing</a>
-<a href="/auth.htm">Authentication</a>
-<a href="/cookies.htm">Cookies</a>
-<a href="/upload.htm">File Uploads</a>
-<a href="/email">Send E-mail</a>
-<a href="/dyndns">Dynamic DNS</a>
-<a href="/protect/config.htm">Configuration</a>
+<a href="/index.htm">简要</a>
+<!--<a href="/dynvars.htm">动态变量</a>-->
+<a href="/forms.htm">输出控制</a>
+<!--<a href="/auth.htm">Authentication</a>-->
+<!--<a href="/cookies.htm">Cookies</a>-->
+<!--<a href="/upload.htm">File Uploads</a>-->
+<a href="/email">发送 E-mail</a>
+<a href="/dyndns">动态DNS</a>
+<a href="/protect/config.htm">配置</a>
 </div>
