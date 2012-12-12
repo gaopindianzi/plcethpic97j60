@@ -48,7 +48,7 @@ void HTTPPrint_reboot(void);
 void HTTPPrint_rebootaddr(void);
 void HTTPPrint_ddns_service(WORD);
 void HTTPPrint_RelaySelected(WORD,WORD);
-void HTTPPrint_current_temp(void);
+void HTTPPrint_currenttemp(void);
 
 void HTTPPrint(DWORD callbackID)
 {
@@ -222,8 +222,8 @@ void HTTPPrint(DWORD callbackID)
         case 0x00000042:
 			HTTPPrint_RelaySelected(7,FALSE);
 			break;
-        case 0x00000043:
-			HTTPPrint_current_temp();
+        case 0x00000044:
+			HTTPPrint_currenttemp();
 			break;
 		default:
 			// Output notification for undefined values

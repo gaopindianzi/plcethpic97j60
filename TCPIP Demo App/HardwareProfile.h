@@ -1339,9 +1339,9 @@
 	#define RTC_SDA_OUT			(LATG5)   //(LATGbits.LATG5)
 
 	//DS18B20 I/O pins		单总线温度传感器
-	#define Temp_DQ_TRIS		(TRISH5) //(TRISHbits.TRISH5)
-	#define Temp_DQ_IN			(RH5)    //(PORTHbits.RH5)
-	#define Temp_DQ_OUT			(LATH5)  //(LATHbits.LATH5)
+	#define Temp_DQ_TRIS	(TRISH5) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN		(RH5)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT		(LATH5)  //(LATHbits.LATH5)
 
 
 

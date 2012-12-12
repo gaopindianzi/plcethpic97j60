@@ -1370,7 +1370,7 @@ void HTTPPrint_version(void)
 	TCPPutROMString(sktHTTP, (ROM void*)VERSION);
 }
 
-void HTTPPrint_current_temp(void)
+void HTTPPrint_currenttemp(void)
 {
 	char chr[8];
 	unsigned int t;

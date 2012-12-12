@@ -65,4 +65,5 @@ relay_get(1,FALSE)
 +RelaySelected(6,FALSE)
 +RelaySelected(7,TRUE)
 +RelaySelected(7,FALSE)
-+current_temp
+current_temp
++currenttemp
