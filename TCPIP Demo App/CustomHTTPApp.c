@@ -55,6 +55,7 @@
 
 #include "TCPIP Stack/TCPIP.h"
 #include "DS18B20.h"
+#include "hal_io_interface.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -179,7 +180,8 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 {
 	BYTE *ptr;
 	BYTE filename[20];
-	
+	BYTE reg;
+
 	// Load the file name
 	// Make sure BYTE filename[] above is large enough for your longest name
 	MPFSGetFilename(curHTTP.file, filename, 20);
@@ -188,21 +190,53 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 	if(!memcmppgm2ram(filename, "forms.htm", 9))
 	{
 		// Seek out each of the four LED strings, and if it exists set the LED states
-		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led4");
-		if(ptr)
-			RELAY_OUT_3 = (*ptr == '1');
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay1");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(0,&reg,1);
+		}
 
-		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led3");
-		if(ptr)
-			RELAY_OUT_2 = (*ptr == '1');
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay2");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(1,&reg,1);
+		}
 
-		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led2");
-		if(ptr)
-			RELAY_OUT_1 = (*ptr == '1');
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay3");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(2,&reg,1);
+		}
 
-		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led1");
-		if(ptr)
-			RELAY_OUT_0 = (*ptr == '1');
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay4");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(3,&reg,1);
+		}
+
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay5");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(4,&reg,1);
+		}
+
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay6");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(5,&reg,1);
+		}
+
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay7");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(6,&reg,1);
+		}
+
+		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay8");
+		if(ptr) {
+			reg = (*ptr == '1')?0x01:0x00;
+			io_out_set_bits(7,&reg,1);
+		}
 	}
 	
 	// If it's the LED updater file
@@ -1336,13 +1370,11 @@ void HTTPPrint_version(void)
 	TCPPutROMString(sktHTTP, (ROM void*)VERSION);
 }
 
-void HTTPPrint_today_temp(void)
+void HTTPPrint_current_temp(void)
 {
 	char chr[8];
 	unsigned int t;
-	unsigned int tmp = Read_Temperature();
-	tmp *= 10;
-	tmp /= 16;
+	unsigned int tmp = ReadTemperatureXX_XC();
 	t = tmp / 10; //得到度数
 	uitoa(t,chr);
 	TCPPutString(sktHTTP,chr);
@@ -1350,7 +1382,6 @@ void HTTPPrint_today_temp(void)
 	t = tmp % 10; //得到小数点
 	uitoa(t,chr);
 	TCPPutString(sktHTTP,chr);
-	Convert_T();
 }
 
 
@@ -1804,6 +1835,46 @@ void HTTPPrint_status_fail(void)
 	else
 		TCPPutROMString(sktHTTP, (ROM BYTE*)"none");
 	lastFailure = FALSE;
+}
+
+
+void HTTPPrint_RelaySelected(WORD num, WORD state)
+{
+	// Determine which LED to check
+	switch(num)
+	{
+		case 1:
+			num = (io_out[0] & (1<<0))?1:0;
+			break;
+		case 2:
+			num = (io_out[0] & (1<<1))?1:0;
+			break;
+		case 3:
+			num = (io_out[0] & (1<<2))?1:0;
+			break;
+		case 4:
+			num = (io_out[0] & (1<<3))?1:0;
+			break;
+		case 5:
+			num = (io_out[0] & (1<<4))?1:0;
+			break;
+		case 6:
+			num = (io_out[0] & (1<<5))?1:0;
+			break;
+		case 7:
+			num = (io_out[0] & (1<<6))?1:0;
+			break;
+		case 8:
+			num = (io_out[0] & (1<<7))?1:0;
+			break;
+		default:
+			num = 0;
+	}
+	
+	// Print output if TRUE and ON or if FALSE and OFF
+	if((state && num) || (!state && !num))
+		TCPPutROMString(sktHTTP, (ROM BYTE*)"SELECTED");
+	return;
 }
 
 #endif

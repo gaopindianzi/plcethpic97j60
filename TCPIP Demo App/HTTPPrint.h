@@ -25,7 +25,6 @@ void HTTPPrint_(void);
 void HTTPPrint_builddate(void);
 void HTTPPrint_led(WORD);
 void HTTPPrint_lcdtext(void);
-void HTTPPrint_ledSelected(WORD,WORD);
 void HTTPPrint_version(void);
 void HTTPPrint_btn(WORD);
 void HTTPPrint_pot(void);
@@ -48,7 +47,8 @@ void HTTPPrint_config_dns2(void);
 void HTTPPrint_reboot(void);
 void HTTPPrint_rebootaddr(void);
 void HTTPPrint_ddns_service(WORD);
-void HTTPPrint_today_temp(void);
+void HTTPPrint_RelaySelected(WORD,WORD);
+void HTTPPrint_current_temp(void);
 
 void HTTPPrint(DWORD callbackID)
 {
@@ -95,30 +95,6 @@ void HTTPPrint(DWORD callbackID)
 			break;
         case 0x0000000d:
 			HTTPPrint_lcdtext();
-			break;
-        case 0x0000000e:
-			HTTPPrint_ledSelected(4,TRUE);
-			break;
-        case 0x0000000f:
-			HTTPPrint_ledSelected(4,FALSE);
-			break;
-        case 0x00000010:
-			HTTPPrint_ledSelected(3,TRUE);
-			break;
-        case 0x00000011:
-			HTTPPrint_ledSelected(3,FALSE);
-			break;
-        case 0x00000012:
-			HTTPPrint_ledSelected(2,TRUE);
-			break;
-        case 0x00000013:
-			HTTPPrint_ledSelected(2,FALSE);
-			break;
-        case 0x00000014:
-			HTTPPrint_ledSelected(1,TRUE);
-			break;
-        case 0x00000015:
-			HTTPPrint_ledSelected(1,FALSE);
 			break;
         case 0x00000016:
 			HTTPPrint_version();
@@ -204,8 +180,50 @@ void HTTPPrint(DWORD callbackID)
         case 0x00000031:
 			HTTPPrint_ddns_service(2);
 			break;
-        case 0x00000032:
-			HTTPPrint_today_temp();
+        case 0x00000035:
+			HTTPPrint_RelaySelected(1,TRUE);
+			break;
+        case 0x00000036:
+			HTTPPrint_RelaySelected(1,FALSE);
+			break;
+        case 0x00000037:
+			HTTPPrint_RelaySelected(2,TRUE);
+			break;
+        case 0x00000038:
+			HTTPPrint_RelaySelected(2,FALSE);
+			break;
+        case 0x00000039:
+			HTTPPrint_RelaySelected(3,TRUE);
+			break;
+        case 0x0000003a:
+			HTTPPrint_RelaySelected(3,FALSE);
+			break;
+        case 0x0000003b:
+			HTTPPrint_RelaySelected(4,TRUE);
+			break;
+        case 0x0000003c:
+			HTTPPrint_RelaySelected(4,FALSE);
+			break;
+        case 0x0000003d:
+			HTTPPrint_RelaySelected(5,TRUE);
+			break;
+        case 0x0000003e:
+			HTTPPrint_RelaySelected(5,FALSE);
+			break;
+        case 0x0000003f:
+			HTTPPrint_RelaySelected(6,TRUE);
+			break;
+        case 0x00000040:
+			HTTPPrint_RelaySelected(6,FALSE);
+			break;
+        case 0x00000041:
+			HTTPPrint_RelaySelected(7,TRUE);
+			break;
+        case 0x00000042:
+			HTTPPrint_RelaySelected(7,FALSE);
+			break;
+        case 0x00000043:
+			HTTPPrint_current_temp();
 			break;
 		default:
 			// Output notification for undefined values

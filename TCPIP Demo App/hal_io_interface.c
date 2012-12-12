@@ -9,11 +9,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define REAL_IO_OUT_NUM          7
-#define REAL_IO_INPUT_NUM        9
 
 
-#define BITS_TO_BS(bit_num)    (((bit_num)+7)/8)
+
+
 
 unsigned char io_out[BITS_TO_BS(REAL_IO_OUT_NUM)] = {0};
 

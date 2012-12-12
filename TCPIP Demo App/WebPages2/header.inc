@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>Microchip TCP/IP Stack Demo App</title>
+<title>深圳市精锐达网络控制卡 TCP/IP 网页控制应用</title>
 <link href="/mchp.css" rel="stylesheet" type="text/css" />
 <script src="/mchp.js" type="text/javascript"></script>
 </head>
@@ -11,9 +11,9 @@
 <div id="shadow-one"><div id="shadow-two"><div id="shadow-three"><div id="shadow-four">
 <div id="page">
 
-<div style="padding:0 0 5px 5px"><img src="/mchp.gif" alt="Microchip" /></div>
+<div style="padding:0 0 5px 5px"><img src="/szjrd.gif" alt="SZJRD" /></div>
 
-<div id="title"><div class="right">TCP/IP Stack Demo Application</div><span id="hello">&nbsp;</span></div>
+<div id="title"><div class="right">以太网控制卡服务器</div><span id="hello">&nbsp;</span></div>
 
 <div id="menu">
 <a href="/index.htm">Overview</a>

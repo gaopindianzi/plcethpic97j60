@@ -22,30 +22,19 @@ method to retrieve submitted values for processing.</p>
 
 <form method="get" action="forms.htm">
 <div class="examplebox">
-<b>4:</b> <select name="led4"><option value="1" ~ledSelected(4,TRUE)~>On</option><option value="0" ~ledSelected(4,FALSE)~>Off</option></select>&nbsp; 
-<b>3:</b> <select name="led3"><option value="1" ~ledSelected(3,TRUE)~>On</option><option value="0" ~ledSelected(3,FALSE)~>Off</option></select>&nbsp; 
-<b>2:</b> <select name="led2"><option value="1" ~ledSelected(2,TRUE)~>On</option><option value="0" ~ledSelected(2,FALSE)~>Off</option></select>&nbsp; 
-<b>1:</b> <select name="led1"><option value="1" ~ledSelected(1,TRUE)~>On</option><option value="0" ~ledSelected(1,FALSE)~>Off</option></select>&nbsp; 
+<b>1:</b> <select name="relay1"><option value="1" ~RelaySelected(1,TRUE)~>On</option><option value="0" ~RelaySelected(1,FALSE)~>Off</option></select>&nbsp; 
+<b>2:</b> <select name="relay2"><option value="1" ~RelaySelected(2,TRUE)~>On</option><option value="0" ~RelaySelected(2,FALSE)~>Off</option></select>&nbsp; 
+<b>3:</b> <select name="relay3"><option value="1" ~RelaySelected(3,TRUE)~>On</option><option value="0" ~RelaySelected(3,FALSE)~>Off</option></select>&nbsp; 
+<b>4:</b> <select name="relay4"><option value="1" ~RelaySelected(4,TRUE)~>On</option><option value="0" ~RelaySelected(4,FALSE)~>Off</option></select>&nbsp;<br />
+<b>5:</b> <select name="relay5"><option value="1" ~RelaySelected(5,TRUE)~>On</option><option value="0" ~RelaySelected(5,FALSE)~>Off</option></select>&nbsp; 
+<b>6:</b> <select name="relay6"><option value="1" ~RelaySelected(6,TRUE)~>On</option><option value="0" ~RelaySelected(6,FALSE)~>Off</option></select>&nbsp; 
+<b>7:</b> <select name="relay7"><option value="1" ~RelaySelected(7,TRUE)~>On</option><option value="0" ~RelaySelected(7,FALSE)~>Off</option></select>&nbsp; 
 <br /><input type="submit" value="Save" style="margin-top:5px;">
 </div>
 </form>
 
-<p class="exercise"><b>Exercise:</b> Modify this form to support LED 5.</p>
+<p class="exercise"><b>提示：</b> 选择对应的输出端和输出值，点击“提交”按钮。</p>
 
-<h6></h6>
-
-<p>The <b>POST</b> method submits the data after the request headers are 
-sent.  This allows the data to be virtually unlimited in length, as long as your 
-application can process it in chunks.  However, your application must manage 
-the receipt of data, so it is generally more complicated.</p>
-
-<p>As an example, this POST form sets the text shown on the LCD display:</p>
-
-<form method="post" action="forms.htm">
-<div class="examplebox">
-<b>LCD:</b> <input type="text" name="lcd" maxlength="32"> &nbsp; <input type="submit" value="Save">
-</div>
-</form>
 
 </div>
 

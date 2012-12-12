@@ -1,6 +1,14 @@
 #ifndef __HAL_IO_INTERFACE_H__
 #define __HAL_IO_INTERFACE_H__
 
+
+#define REAL_IO_OUT_NUM          7
+#define REAL_IO_INPUT_NUM        9
+
+#define BITS_TO_BS(bit_num)    (((bit_num)+7)/8)
+
+extern unsigned char io_out[BITS_TO_BS(REAL_IO_OUT_NUM)];
+
 extern unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern unsigned int io_out_get_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
