@@ -260,3 +260,14 @@ unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits,unsign
 	}
 	return bitcount;
 }
+
+
+unsigned char read_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len)
+{
+	unsigned int base = index + GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+	XEEBeginRead(base);
+	while(len--) {
+		*buffer++ = XEERead();
+	}
+	XEEEndRead();
+}

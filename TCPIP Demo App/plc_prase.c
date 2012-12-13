@@ -14,12 +14,13 @@
 #include "plc_command_def.h"
 #include "plc_prase.h"
 
-#define  COUNTER_MAX             60
+
 #define  TIMING100MS_BASE   0
 #define  TIMING100MS_MAX         20
 #define  TIMING1S_BASE      20
 #define  TIMING1S_MAX            20
-
+#define  COUNT_BASE         40
+#define  COUNTER_MAX             60
 
 
 #define  IO_INPUT_BASE          0
@@ -41,17 +42,23 @@ unsigned char inputs_last[BITS_TO_BS(IO_INPUT_COUNT)];
 //输出继电器
 unsigned int  output_num;
 unsigned char output_last[BITS_TO_BS(IO_OUTPUT_COUNT)];
+unsigned char output_new[BITS_TO_BS(IO_OUTPUT_COUNT)];
 //辅助继电器
 unsigned char auxi_relays[BITS_TO_BS(AUXI_RELAY_COUNT)];
+unsigned char auxi_relays_last[BITS_TO_BS(AUXI_RELAY_COUNT)];
 //定时器定义，自动对内部的时钟脉冲进行计数
 unsigned int  time100ms_come_flag;
 unsigned int  time1s_come_flag;
-struct TIME_COUNT_TYPE  timing100ms[TIMING100MS_MAX];
+struct COUNT_TYPE  timing100ms[TIMING100MS_MAX];
+unsigned char timeing100ms_event_last[BITS_TO_BS(TIMING100MS_MAX)];
 unsigned char timeing100ms_event[BITS_TO_BS(TIMING100MS_MAX)];
-struct TIME_COUNT_TYPE  timing1s[TIMING1S_MAX];
+struct COUNT_TYPE  timing1s[TIMING1S_MAX];
+unsigned char timing1s_event_last[BITS_TO_BS(TIMING1S_MAX)];
 unsigned char timing1s_event[BITS_TO_BS(TIMING1S_MAX)];
 //计数器定义
-struct TIME_COUNT_TYPE  counter[COUNTER_MAX];
+struct COUNT_TYPE       counter[COUNTER_MAX];
+unsigned char           counter_event[BITS_TO_BS(COUNTER_MAX)];
+unsigned char           counter_event_last[BITS_TO_BS(COUNTER_MAX)];
 //运算器的寄存器
 #define  BIT_STACK_LEVEL     32
 unsigned char  bit_acc;
@@ -122,12 +129,16 @@ void PlcInit(void)
  *  这里一次性读取下一个指令，长度为最长指令长度
  */
 
-unsigned char read_next_plc_code(void)
+void read_next_plc_code(void)
 {
+	//read_plc_programer(plc_command_index,plc_command_array,sizeof(plc_command_array));
 }
 
 void handle_plc_command_error(void)
 {
+	//提示第几条指令出错
+	//然后复位，或停止运行
+	plc_command_index  = 0;
 }
 
 static unsigned char get_bitval(unsigned int index)
@@ -143,7 +154,7 @@ static unsigned char get_bitval(unsigned int index)
 		index -= IO_OUTPUT_BASE;
 		B = index / 8;
 	    b = index % 8;
-		bitval = (output_last[B]&code_msk[b])?1:0;
+		bitval = (output_new[B]&code_msk[b])?1:0;
 	} else if(index >= AUXI_RELAY_BASE && index < (AUXI_RELAY_BASE + AUXI_RELAY_COUNT)) {
 		index -= AUXI_RELAY_BASE;
 	    B = index / 8;
@@ -162,6 +173,38 @@ static unsigned char get_bitval(unsigned int index)
 	}
 	return bitval;
 }
+static unsigned char get_last_bitval(unsigned int index)
+{
+	unsigned char bitval = 0;
+	unsigned char B,b;
+	if(index >= IO_INPUT_BASE && index < (IO_INPUT_BASE+IO_INPUT_COUNT)) {
+		index -= IO_INPUT_BASE;
+	    B = index / 8;
+	    b = index % 8;
+		bitval = (inputs_last[B]&code_msk[b])?1:0;
+	} else if(index >= IO_OUTPUT_BASE && index < (IO_OUTPUT_BASE+IO_OUTPUT_COUNT)) {
+		index -= IO_OUTPUT_BASE;
+		B = index / 8;
+	    b = index % 8;
+		bitval = (output_last[B]&code_msk[b])?1:0;
+	} else if(index >= AUXI_RELAY_BASE && index < (AUXI_RELAY_BASE + AUXI_RELAY_COUNT)) {
+		index -= AUXI_RELAY_BASE;
+	    B = index / 8;
+	    b = index % 8;
+		bitval = (auxi_relays_last[B]&code_msk[b])?1:0;
+	} else if(index >= TIMING100MS_EVENT_BASE && index < (TIMING100MS_EVENT_BASE+TIMING100MS_EVENT_COUNT)) {
+		index -= TIMING100MS_EVENT_BASE;
+	    B = index / 8;
+	    b = index % 8;
+		bitval = (timeing100ms_event_last[B]&code_msk[b])?1:0;
+	} else if(index >= TIMING1S_EVENT_BASE && index < (TIMING1S_EVENT_BASE + TIMING1S_EVENT_COUNT)) {
+		index -= TIMING1S_EVENT_BASE;
+	    B = index / 8;
+	    b = index % 8;
+		bitval = (timing1s_event_last[B]&code_msk[b])?1:0;
+	}
+	return bitval;
+}
 static void set_bitval(unsigned int index,unsigned char bitval)
 {
 	unsigned char B,b;
@@ -172,9 +215,9 @@ static void set_bitval(unsigned int index,unsigned char bitval)
 	    B = index / 8;
 	    b = index % 8;
 		if(bitval) {
-			output_last[B] |=  code_msk[b];
+			output_new[B] |=  code_msk[b];
 		} else {
-			output_last[B] &= ~code_msk[b];
+			output_new[B] &= ~code_msk[b];
 		}
 	} else if(index >= AUXI_RELAY_BASE && index < (AUXI_RELAY_BASE + AUXI_RELAY_COUNT)) {
 		index -= IO_OUTPUT_BASE;
@@ -192,11 +235,12 @@ static void set_bitval(unsigned int index,unsigned char bitval)
  */
 static unsigned char timing_cell_prcess(void)
 {
+#if 0
 	unsigned int i;
 	unsigned char B,b;
 	if(time100ms_come_flag) {
 	    for(i=0;i<TIMING100MS_MAX;i++) {
-		    WORD time = timing100ms[i].time_count;
+		    WORD time = timing100ms[i].count;
 			if(time > 0) {
 		        if(time > time100ms_come_flag) { //最高位为允许计时位
 				    time -= time100ms_come_flag;
@@ -208,14 +252,14 @@ static unsigned char timing_cell_prcess(void)
 				    b = i%8;
 					timeing100ms_event[B] |= code_msk[b];
 				}
-				timing100ms[i].time_count = time;
+				timing100ms[i].count = time;
 			}
 	    }
 		time100ms_come_flag = 0;
 	}
 	if(time1s_come_flag) {
 		for(i=0;i<TIMING1S_MAX;i++) {
-			WORD time = timing1s[i].time_count;
+			WORD time = timing1s[i].count;
 			if(time > 0) {
 				if(time > time1s_come_flag) {
 					time -= time1s_come_flag;
@@ -227,31 +271,34 @@ static unsigned char timing_cell_prcess(void)
 					b = i%8;
 					timing1s_event[B] |= code_msk[b];
 				}
-				timing1s[i].time_count = time;
+				timing1s[i].count = time;
 			}
 		}
 		time1s_come_flag = 0;
 	}
+#endif
 }
 /**********************************************
  * 打开定时器，并设定触发时间的最大值
  */
 static void timing_cell_start(unsigned int index,unsigned int event_count)
 {
+#if 0
 	unsigned char B,b;
 	if(index >= TIMING100MS_BASE && index < (TIMING100MS_BASE+TIMING100MS_MAX)) {
 		index -= TIMING100MS_BASE;
 	    B = index/8;
 	    b = index%8;
-		timing100ms[index].time_count = event_count;
+		timing100ms[index].count = event_count;
 		timeing100ms_event[B] &= ~code_msk[b];
 	} else if(index >= TIMING1S_BASE && index < (TIMING1S_BASE+TIMING1S_MAX)) {
 		index -= TIMING1S_BASE;
 	    B = index/8;
 	    b = index%8;
-		timing1s[index].time_count = event_count;
+		timing1s[index].count = event_count;
 		timing1s_event[B] &= ~code_msk[b];
 	}
+#endif
 }
 
 /**********************************************
@@ -259,20 +306,22 @@ static void timing_cell_start(unsigned int index,unsigned int event_count)
  */
 static void timing_cell_stop(unsigned int index)
 {
+#if 0
 	unsigned char B,b;
 	if(index >= TIMING100MS_BASE && index < (TIMING100MS_BASE+TIMING100MS_MAX)) {
 		index -= TIMING100MS_BASE;
 	    B = index/8;
 	    b = index%8;
-		timing100ms[index].time_count = 0;
+		timing100ms[index].count = 0;
 		timeing100ms_event[B] &= ~code_msk[b];
 	} else if(index >= TIMING1S_BASE && index < (TIMING1S_BASE+TIMING1S_MAX)) {
 		index -= TIMING1S_BASE;
 	    B = index/8;
 	    b = index%8;
-		timing1s[index].time_count = 0;
+		timing1s[index].count = 0;
 		timing1s_event[B] &= ~code_msk[b];
 	}
+#endif
 }
 
 /**********************************************
@@ -287,6 +336,7 @@ void handle_plc_ld(void)
 	if(PLC_CODE == PLC_LDI) {
 		bit_acc = !bit_acc;
 	}
+	plc_command_index += 3;
 }
 /**********************************************
  * 把位运算的结果输出到输出端口中
@@ -298,6 +348,7 @@ void handle_plc_out(void)
 	bit_index <<= 8;
 	bit_index |= plc_command_array[1];
 	set_bitval(bit_index,bit_acc);
+	plc_command_index += 3;
 }
 
 /**********************************************
@@ -315,6 +366,7 @@ void handle_plc_and_ani(void)
 	} else {
 		bit_acc = bit_acc && (!bittmp);
 	}
+	plc_command_index += 3;
 }
 
 /**********************************************
@@ -335,6 +387,7 @@ void handle_plc_or_ori(void)
 		handle_plc_command_error();
 		return ;
 	}
+	plc_command_index += 3;
 }
 
 /**********************************************
@@ -343,18 +396,11 @@ void handle_plc_or_ori(void)
 void handle_plc_ldp_ldf(void)
 {
 	unsigned char reg;
-	unsigned char B,b;
 	unsigned int bit_index = plc_command_array[2];
 	bit_index <<= 8;
 	bit_index |= plc_command_array[1];
-	if(bit_index >= IO_INPUT_COUNT) {
-		handle_plc_command_error();
-		return ;
-	}
-	B = bit_index / 8;
-	b = bit_index % 8;
-	reg  =  (inputs_last[B] & code_msk[b])?0x01:0x00;
-	reg |=  ( inputs_new[B] & code_msk[b])?0x02:0x00;
+	reg =  get_last_bitval(bit_index)?0x01:0x00;
+	reg |= get_bitval(bit_index)?     0x02:0x00;
 	if(PLC_CODE == PLC_LDP) {
 		if(reg == 0x02) {
 			bit_acc = 1;
@@ -371,6 +417,7 @@ void handle_plc_ldp_ldf(void)
 		handle_plc_command_error();
 		return ;
 	}
+	plc_command_index += 3;
 }
 
 
@@ -384,14 +431,8 @@ void handle_plc_andp_andf(void)
 	unsigned int bit_index = plc_command_array[2];
 	bit_index <<= 8;
 	bit_index |= plc_command_array[1];
-	if(bit_index >= IO_INPUT_COUNT) {
-		handle_plc_command_error();
-		return ;
-	}
-	B = bit_index / 8;
-	b = bit_index % 8;
-	reg  =  (inputs_last[B] & code_msk[b])?0x01:0x00;
-	reg |=  ( inputs_new[B] & code_msk[b])?0x02:0x00;
+	reg =  get_last_bitval(bit_index)?0x01:0x00;
+	reg |= get_bitval(bit_index)?     0x02:0x00;
 	if(PLC_CODE == PLC_ANDP) {
 		if(reg == 0x02) {
 			bit_acc = bit_acc && 1;
@@ -408,6 +449,7 @@ void handle_plc_andp_andf(void)
 		handle_plc_command_error();
 		return ;
 	}
+	plc_command_index += 3;
 }
 /**********************************************
  * 或上升沿或下降沿
@@ -419,14 +461,8 @@ void handle_plc_orp_orf(void)
 	unsigned int bit_index = plc_command_array[2];
 	bit_index <<= 8;
 	bit_index |= plc_command_array[1];
-	if(bit_index >= IO_INPUT_COUNT) {
-		handle_plc_command_error();
-		return ;
-	}
-	B = bit_index / 8;
-	b = bit_index % 8;
-	reg  =  (inputs_last[B] & code_msk[b])?0x01:0x00;
-	reg |=  ( inputs_new[B] & code_msk[b])?0x02:0x00;
+	reg =  get_last_bitval(bit_index)?0x01:0x00;
+	reg |= get_bitval(bit_index)?     0x02:0x00;
 	if(PLC_CODE == PLC_ORP) {
 		if(reg == 0x02) {
 			bit_acc = bit_acc || 1;
@@ -443,6 +479,7 @@ void handle_plc_orp_orf(void)
 		handle_plc_command_error();
 		return ;
 	}
+	plc_command_index += 3;
 }
 
 /**********************************************
@@ -470,6 +507,7 @@ void handle_plc_mps_mrd_mpp(void)
 		bit_acc = (bit_stack[B] & code_msk[b])?1:0;
 		bit_stack_sp--;
 	}
+	plc_command_index += 1;
 }
 /**********************************************
  * 锁或解锁指令
@@ -492,6 +530,7 @@ void handle_plc_set_rst(void)
 		handle_plc_command_error();
 		return ;
 	}
+	plc_command_index += 3;
 }
 /**********************************************
  * 取反结果
@@ -499,6 +538,7 @@ void handle_plc_set_rst(void)
 void handle_plc_inv(void)
 {
 	bit_acc = !bit_acc;
+	plc_command_index += 1;
 }
 
 /**********************************************
@@ -521,8 +561,43 @@ void handle_plc_out_t(void)
 	} else {
 		timing_cell_stop(time_index);
 	}
+	plc_command_index += 5;
 }
-
+/**********************************************
+ * 输出到计数器
+ * 根据编号，可能输出到100ms定时器，也可能输出到1s定时器
+ */
+void handle_plc_out_c(void)
+{
+#if 0
+	unsigned char B,b;
+	unsigned int kval;
+	unsigned int index;
+	index = plc_command_array[2];
+    index <<= 8;
+	index |= plc_command_array[1];
+	if(bit_acc) {
+	    kval = plc_command_array[4];
+	    kval <<= 8;
+	    kval |= plc_command_array[3];
+		if(index >= COUNTER_MAX) {
+		    handle_plc_command_error();
+		    return ;
+		}
+		B = index / 8;
+		b = index % 8;
+		counter[index].count = kval;
+		counter_event[B] |= code_msk[b];
+		if(++counter[index].count > kval) {
+			counter_event[B] |= code_msk[b];
+		}
+	} else {
+		counter[index].count = 0;
+		counter_event[B] &= ~code_msk[b];
+	}
+	plc_command_index += 5;
+#endif
+}
 
 void PlcProcess(void)
 {
@@ -534,7 +609,7 @@ void PlcProcess(void)
 	{
 	case PLC_END: //指令结束，从头开始
 		plc_command_index = 0;
-		break;
+		return 0;
 	case PLC_LD: 
 	case PLC_LDI:
 		handle_plc_ld();
@@ -578,10 +653,11 @@ void PlcProcess(void)
 		handle_plc_out_t();
 		break;
 	case PLC_OUTC:
+		handle_plc_out_c();
 		break;
 	default:
 	case PLC_NONE: //空指令，直接跳过
-		break;
+		return ;
 	}
 	//输出处理，把运算结果输出到继电器中
 	io_out_set_bits(0,output_last,IO_OUTPUT_COUNT);

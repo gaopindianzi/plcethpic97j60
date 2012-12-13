@@ -37,9 +37,9 @@
 #define    PLC_END     0xFF  //结束指令
 
 
-struct TIME_COUNT_TYPE
+struct COUNT_TYPE
 {
-	WORD   time_count;
+	WORD   count;
 };
 //定时器指令操作码
 typedef struct _TIME_OP
