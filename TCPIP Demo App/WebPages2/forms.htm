@@ -1,11 +1,9 @@
 ~inc:header.inc~
 <div id="content">
 
-<h1>Form Processing</h1>
+<h1>继电器控制页面</h1>
 
-<p>Your application will likely need to accept data from the user.  Forms allow
-you to do just that.  Forms can be submitted in one of two methods (<i>GET</i> and 
-<i>POST</i>), and this server supports both.</p>
+<p>总共有7路继电器可以控制</p>
 
 <h6></h6>
 
@@ -18,7 +16,7 @@ handle the data in the <code>HTTPExecuteGet</code> callback.  The functions
 <code>HTTPGetArg</code> and <code>HTTPGetROMArg</code> provide an easy 
 method to retrieve submitted values for processing.</p>
 
-<p>As an example, this GET form controls several LEDs on the demo board:</p>
+<p>这里是一些继电器的输出，可以选择对应的路数和开关选项：</p>
 
 <form method="get" action="forms.htm">
 <div class="examplebox">
@@ -33,7 +31,7 @@ method to retrieve submitted values for processing.</p>
 </div>
 </form>
 
-<p class="exercise"><b>提示：</b> 选择对应的输出端和输出值，点击“提交”按钮。</p>
+<p class="exercise"><b>提示:</b>然后点击"提交"按钮.</p>
 
 
 </div>
