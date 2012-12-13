@@ -8,6 +8,9 @@
 #define BITS_TO_BS(bit_num)    (((bit_num)+7)/8)
 
 extern unsigned char io_out[BITS_TO_BS(REAL_IO_OUT_NUM)];
+extern const unsigned char  code_msk[8];
+
+
 
 extern unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
