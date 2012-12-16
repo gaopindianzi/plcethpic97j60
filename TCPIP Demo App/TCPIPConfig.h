@@ -63,7 +63,7 @@
  *   disabled the following high-level application modules.
  */
 #define STACK_USE_UART					// Application demo using UART for IP address display and stack configuration
-#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
+//#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
 //#define STACK_USE_IP_GLEANING
 #define STACK_USE_ICMP_SERVER
 #define STACK_USE_ICMP_CLIENT
@@ -92,7 +92,7 @@
 
 #define STACK_USE_DS1302  //添加了DS1302实时时钟
 #define STACK_USE_DS18B20  //添加了温度传感器
-#define STACK_USE_RUNING_RST   //添加了运行时复位功能
+//#define STACK_USE_RUNING_RST   //添加了运行时复位功能,注意IO口的使用，不同的板子上，复位口不一样
 
 // =======================================================================
 //   Data Storage Options

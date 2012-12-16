@@ -58,7 +58,7 @@
 #include "TCPIP Stack/TCPIP.h"
 
 #define UART2TCPBRIDGE_PORT	   2001
-#define BAUD_RATE			   9600
+#define BAUD_RATE		       (9600ul)
 
 
 #if defined(STACK_USE_UART2TCP_BRIDGE)
