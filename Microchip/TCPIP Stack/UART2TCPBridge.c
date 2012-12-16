@@ -57,10 +57,8 @@
 
 #include "TCPIP Stack/TCPIP.h"
 
-WORD    uart2tcp_bridge_port = 1000;
-DWORD   baud_rate            = 115200ul;
-#define UART2TCPBRIDGE_PORT	   uart2tcp_bridge_port
-#define BAUD_RATE			   baud_rate
+#define UART2TCPBRIDGE_PORT	   2001
+#define BAUD_RATE			   9600
 
 
 #if defined(STACK_USE_UART2TCP_BRIDGE)

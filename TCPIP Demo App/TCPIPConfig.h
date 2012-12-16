@@ -63,7 +63,7 @@
  *   disabled the following high-level application modules.
  */
 #define STACK_USE_UART					// Application demo using UART for IP address display and stack configuration
-//#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
+#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
 //#define STACK_USE_IP_GLEANING
 #define STACK_USE_ICMP_SERVER
 #define STACK_USE_ICMP_CLIENT
@@ -262,7 +262,7 @@
 			//{TCP_PURPOSE_FTP_DATA, TCP_ETH_RAM, 0, 128},
 			//{TCP_PURPOSE_TCP_PERFORMANCE_TX, TCP_ETH_RAM, 256, 1},
 			//{TCP_PURPOSE_TCP_PERFORMANCE_RX, TCP_ETH_RAM, 40, 360},
-			//{TCP_PURPOSE_UART_2_TCP_BRIDGE, TCP_ETH_RAM, 256, 128},
+			{TCP_PURPOSE_UART_2_TCP_BRIDGE, TCP_ETH_RAM, 256, 128},
 			{TCP_PURPOSE_HTTP_SERVER, TCP_ETH_RAM, 200, 200},
 			//{TCP_PURPOSE_HTTP_SERVER, TCP_ETH_RAM, 200, 200},
 			{TCP_PURPOSE_DEFAULT, TCP_ETH_RAM, 200, 200},
@@ -293,7 +293,7 @@
  *   Berkeley Sockets are disabled.  Set this value as low as your application 
  *   requires to avoid waisting RAM.
  */
-#define BSD_SOCKET_COUNT (5u)
+#define BSD_SOCKET_COUNT (8u)
 
 
 // =======================================================================

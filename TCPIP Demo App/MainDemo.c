@@ -366,8 +366,6 @@ int main(void)
 		Tcp1CmdTask();
 		Tcp2CmdTask();
 
-		//PLC指令处理系统
-
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service
 		if(DHCPBindCount != myDHCPBindCount)
