@@ -302,8 +302,6 @@ int main(void)
 
 	set_led_flash(20,1500,0);
 
-	PlcInit();
-
     while(1)
     {
         // Blink LED0 (right most one) every second.
@@ -369,8 +367,6 @@ int main(void)
 		Tcp2CmdTask();
 
 		//PLC指令处理系统
-		PlcProcess();
-
 
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service
