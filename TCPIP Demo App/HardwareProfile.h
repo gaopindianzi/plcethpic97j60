@@ -1292,8 +1292,15 @@
 	/* lzf * add */
     #define RUN_LED_TRIS        (TRISG3)
     #define RUN_LED_IO          (LATG3)
+
+#if 1 //在我的板子上是这个 IO口复位
     #define IP_CONFIG_TRIS      (TRISD6)
     #define IP_CONFIG_IO        (RD6)
+#else
+	//但在官方板子上是这个，用SET0按键充当复位
+    #define IP_CONFIG_TRIS      (TRISF5)
+    #define IP_CONFIG_IO        (RF5)
+#endif
 
 	//继电器部分
     #define  RELAY_OUT_TRIS_0       (TRISH2)

@@ -92,6 +92,7 @@
 
 #define STACK_USE_DS1302  //添加了DS1302实时时钟
 #define STACK_USE_DS18B20  //添加了温度传感器
+#define STACK_USE_RUNING_RST   //添加了运行时复位功能
 
 // =======================================================================
 //   Data Storage Options

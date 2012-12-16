@@ -459,6 +459,9 @@ void DiscoverTask(void)
 	}
 }
 
+
+#ifdef STACK_USE_RUNING_RST
+
 extern void ResetToDefaultConfig(void);
 
 void ResetTask(void)
@@ -518,7 +521,7 @@ void ResetTask(void)
 	}
 }
 
-
+#endif
 
 
 

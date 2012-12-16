@@ -358,9 +358,12 @@ int main(void)
 	    //DebugTask();
 		//DebugTcpTask();
 		DiscoverTask();
-		ResetTask();
 		TaskLedFlash();
         #endif
+
+#ifdef STACK_USE_RUNING_RST
+		ResetTask();
+#endif
 
 		Tcp0CmdTask();
 		Tcp1CmdTask();
