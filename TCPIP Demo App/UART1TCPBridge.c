@@ -4,6 +4,9 @@
 
 #include "TCPIP Stack/TCPIP.h"
 
+#include "serial_comm_packeter.h"
+
+
 #define UART1TCPBRIDGE_PORT	   502
 #define BAUD_RATE		       (9600ul)
 
@@ -20,10 +23,12 @@
 //  - (Head pointer == Tail pointer - 1), accounting for wraparound,
 //    is defined as a completely full FIFO.  As a result, the max data 
 //    in a FIFO is the buffer size - 1.
-static BYTE vUARTRXFIFO[64]; //串口是慢速设备，一般都够大了
-static BYTE vUARTTXFIFO[64];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
-static BYTE *RXHeadPtr = vUARTRXFIFO, *RXTailPtr = vUARTRXFIFO;
-static BYTE *TXHeadPtr = vUARTTXFIFO, *TXTailPtr = vUARTTXFIFO;
+//static BYTE vUARTRXFIFO[64]; //串口是慢速设备，一般都够大了
+//static BYTE vUARTTXFIFO[64];//TCP传进来的数据，一次性传的比较大，尽量大些，最大是多大1500字节呢
+//static BYTE *RXHeadPtr = vUARTRXFIFO, *RXTailPtr = vUARTRXFIFO;
+//static BYTE *TXHeadPtr = vUARTTXFIFO, *TXTailPtr = vUARTTXFIFO;
+
+static unsigned int tx_index;
 
 
 /*********************************************************************
@@ -105,6 +110,8 @@ void UART1TCPBridgeTask(void)
 	BYTE *RXHeadPtrShadow, *RXTailPtrShadow;
 	BYTE *TXHeadPtrShadow, *TXTailPtrShadow;
 
+	unsigned char buffer[PACK_MAX_RX_SIZE];
+
 	switch(BridgeState)
 	{
 	default:
@@ -181,7 +188,7 @@ void UART1TCPBridgeTask(void)
 
 
 
-
+#if 0
 			//从UART发送到TCP
 
 			// Read FIFO pointers into a local shadow copy.  Some pointers are volatile 
@@ -293,6 +300,42 @@ void UART1TCPBridgeTask(void)
 			    PIE1bits.TXIE = 1;
 			}
 			break;
+#endif
+
+			//发送
+			if(rx_pack.finished) {
+				wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
+				if(wMaxPut >= rx_pack.index) {
+					//一次性发送完毕
+					TCPPutArray(MySocket, rx_pack.buffer, rx_pack.index);
+					rx_pack.finished = 0;
+					PIE1bits.RCIE = 1;
+				} else if(wMaxPut > 0) {
+					//先发送一部分
+					TCPPutArray(MySocket, rx_pack.buffer, wMaxPut);
+					//余下的部分下次发送
+					rx_pack.index -= wMaxPut;
+					memcpy(rx_pack.buffer,&rx_pack.buffer[wMaxPut],rx_pack.index);
+					PIE1bits.RCIE = 1;
+				}
+			}
+			//接收
+			if(!(tx_pack.finished)) {
+				wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
+				if(wMaxGet <= sizeof(buffer)) {
+					TCPGetArray(MySocket,(BYTE *)buffer,wMaxGet);
+					prase_in_buffer(buffer,wMaxGet);
+					if(tx_pack.finished) {
+						tx_index = 0;
+						PIE1bits.TXIE = 1;
+					}
+				} else {
+					//收到的数据太长了，丢掉它,以减轻PLC的计算和判断工作量
+					//清空SOCKET数据内存
+					TCPDiscard(MySocket);
+				}
+			}
+			break;
 	}
 }
 
@@ -328,7 +371,7 @@ void UART1TCPBridgeISR(void)
 
 		// Clear the interrupt flag so we don't keep entering this ISR
 		PIR1bits.RCIF = 0;
-
+#if 0
 		//计算使用了多少空间
 		if(RXHeadPtr >= RXTailPtr) {
 			s = RXHeadPtr - RXTailPtr;
@@ -345,11 +388,16 @@ void UART1TCPBridgeISR(void)
 				RXHeadPtr = vUARTRXFIFO;
 			}
 		}
+#else
+		pack_prase_in(i);
+#endif
+
 	}
 
 	// Transmit a byte, if pending, if possible
 	if(PIR1bits.TXIF && PIE1bits.TXIE)
 	{
+#if 0
 		if(TXTailPtr != TXHeadPtr) {
 			TXREG = *TXTailPtr++;
 			if(TXTailPtr >= vUARTTXFIFO + sizeof(vUARTTXFIFO)) {
@@ -358,6 +406,17 @@ void UART1TCPBridgeISR(void)
 		} else {
 			PIE1bits.TXIE = 0;
 		}
+#else
+		if(tx_pack.finished) {
+			if(tx_index < tx_pack.index) {
+				TXREG = tx_pack.buffer[tx_index++];
+			} else {
+				//完毕
+				tx_pack.finished = 0;
+				PIE1bits.TXIE = 0;
+			}
+		}
+#endif
 	}
 }
 
