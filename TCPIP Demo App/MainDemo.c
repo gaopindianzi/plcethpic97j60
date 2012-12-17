@@ -96,6 +96,7 @@
 #include "DS18B20.h"
 #include "hal_io_interface.h"
 #include "plc_prase.h"
+#include "UART1TCPBridge.h"
 
 #include "debug.h"
 
@@ -143,6 +144,9 @@ static void ProcessIO(void);
 	{
 	    #if defined(STACK_USE_UART2TCP_BRIDGE)
 		UART2TCPBridgeISR();
+		#endif
+	    #if defined(STACK_USE_UART1TCP_BRIDGE)
+		UART1TCPBridgeISR();
 		#endif
 	}
 	
@@ -287,6 +291,12 @@ int main(void)
 	UART2TCPBridgeInit();
 	#endif
 
+
+	#if defined(STACK_USE_UART1TCP_BRIDGE)
+	putrsUART((ROM char*)"\r\n UART1TCPBridgeInit.");
+	UART1TCPBridgeInit();
+	#endif
+
 	// Now that all items are initialized, begin the co-operative
 	// multitasking loop.  This infinite loop will continuously 
 	// execute all stack-related tasks, as well as your own
@@ -360,6 +370,11 @@ int main(void)
 		DiscoverTask();
 		TaskLedFlash();
         #endif
+
+	    #if defined(STACK_USE_UART1TCP_BRIDGE)
+	    UART1TCPBridgeTask();
+	    #endif
+
 
 #ifdef STACK_USE_RUNING_RST
 		ResetTask();

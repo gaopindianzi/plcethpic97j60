@@ -63,6 +63,7 @@
  *   disabled the following high-level application modules.
  */
 #define STACK_USE_UART					// Application demo using UART for IP address display and stack configuration
+#define STACK_USE_UART1TCP_BRIDGE       //自定义串口处理程序
 //#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
 //#define STACK_USE_IP_GLEANING
 #define STACK_USE_ICMP_SERVER
@@ -232,6 +233,7 @@
         #define TCP_PURPOSE_CMD_SERVER0      12
         #define TCP_PURPOSE_CMD_SERVER1      13
         #define TCP_PURPOSE_CMD_SERVER2      14
+        #define TCP_PURPOSE_UART_1_TCP_BRIDGE  15
 	#define END_OF_TCP_SOCKET_TYPES
 	
 	#if defined(__TCP_C)
@@ -263,7 +265,9 @@
 			//{TCP_PURPOSE_FTP_DATA, TCP_ETH_RAM, 0, 128},
 			//{TCP_PURPOSE_TCP_PERFORMANCE_TX, TCP_ETH_RAM, 256, 1},
 			//{TCP_PURPOSE_TCP_PERFORMANCE_RX, TCP_ETH_RAM, 40, 360},
+			#ifdef STACK_USE_UART1TCP_BRIDGE
 			{TCP_PURPOSE_UART_2_TCP_BRIDGE, TCP_ETH_RAM, 256, 128},
+            #endif
 			{TCP_PURPOSE_HTTP_SERVER, TCP_ETH_RAM, 200, 200},
 			//{TCP_PURPOSE_HTTP_SERVER, TCP_ETH_RAM, 200, 200},
 			{TCP_PURPOSE_DEFAULT, TCP_ETH_RAM, 200, 200},
@@ -272,6 +276,9 @@
 			{TCP_PURPOSE_CMD_SERVER0,TCP_ETH_RAM,64,64},
 			{TCP_PURPOSE_CMD_SERVER1,TCP_ETH_RAM,64,64},
 			{TCP_PURPOSE_CMD_SERVER2,TCP_ETH_RAM,64,64},
+            #ifdef STACK_USE_UART1TCP_BRIDGE
+			{TCP_PURPOSE_UART_1_TCP_BRIDGE, TCP_ETH_RAM, 80, 80},
+            #endif
 		};
 		#define END_OF_TCP_CONFIGURATION
 	#endif

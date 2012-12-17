@@ -663,13 +663,6 @@ void set_led_flash(unsigned int on_time,unsigned int off_time,unsigned int times
 }
 
 
-void putmychar(char ch)
-{
-	while(BusyUART()); 
-	WriteUART(ch);
-}
-
-
 void TaskLedFlash(void)
 {
     static enum LedState
@@ -743,18 +736,6 @@ void TaskLedFlash(void)
         		    SET_LED_ON(1);
 					//putrsUART((ROM char*)"\r\Led Flash");
 					//88 05 00 00 00 ff 00 00
-					putmychar('S');
-					putmychar(0x88);
-					putmychar(0x05);
-					putmychar(0x00);
-					putmychar(0x00);
-					putmychar(0x00);
-					putmychar(0xFF);
-					putmychar(0x00);
-					putmychar(0x00);
-					putmychar(0x00);
-					putmychar(0x00);
-					putmychar('E');
         		    flash_start_time = TickGet();
         		    LedSm = LED_FLASH_WAIT_OFF;
 				}
