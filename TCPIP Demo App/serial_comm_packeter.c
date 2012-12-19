@@ -82,6 +82,20 @@ unsigned int CRC162(unsigned char *Array,unsigned int Len)
 }
 
 
+void serial_rx_tx_initialize(void)
+{
+	unsigned int i;
+	for(i=0;i<RX_PACKS_MAX_NUM;i++) {
+        rx_ctl.rx_packs[i].finished = 0;
+	}
+	for(i=0;i<TX_PACKS_MAX_NUM;i++) {
+        tx_ctl.packet[i].finished = 0;
+	}
+}
+
+
+
+
 void rx_find_next_empty_buffer(void)
 {
 	unsigned int i;

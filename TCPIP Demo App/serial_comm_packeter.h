@@ -46,7 +46,7 @@ typedef struct _DATA_TX_CTL_T
 extern RX_PACKS_CTL_T rx_ctl;
 extern DATA_TX_CTL_T  tx_ctl;
 
-
+extern void serial_rx_tx_initialize(void);
 extern void pack_prase_in(unsigned char ch);
 extern DATA_RX_PACKET_T * GetFinishedPacket(void);
 extern DATA_TX_PACKET_T * find_ready_tx_buffer(void);

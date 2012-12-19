@@ -97,7 +97,7 @@
 #include "hal_io_interface.h"
 #include "plc_prase.h"
 #include "UART1TCPBridge.h"
-
+#include "serial_comm_packeter.h"
 #include "debug.h"
 
 #define  THISINFO        1
@@ -211,6 +211,7 @@ int main(void)
 	DS1302_Init();
 #endif
 
+	serial_rx_tx_initialize();
 	
 
 	#if defined(USE_LCD)

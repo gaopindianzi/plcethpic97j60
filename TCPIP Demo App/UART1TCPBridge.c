@@ -186,6 +186,7 @@ void UART1TCPBridgeTask(void)
 				LED2_IO ^= 1;
 			}
 
+			
 
 			prx =  GetFinishedPacket();
 			if(prx != NULL) {
@@ -195,34 +196,17 @@ void UART1TCPBridgeTask(void)
 						//一次性发送完毕
 						TCPPutArray(MySocket, prx->buffer, prx->index);
 						TCPFlush(MySocket);
-						prx->finished = 0;
-						PIE1bits.RCIE = 1;
 					} else {
 						//超过了系统规定的最大内存，丢弃 
-						prx->finished = 0;
 					}
+					prx->finished = 0;
 				}
 			}
-
-#if 0			//接收
-			if(!(tx_pack.finished)) {
-				wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
+			PIE1bits.RCIE = 1;
+			
 
 
-				if(wMaxGet <= sizeof(buffer)) {
-					TCPGetArray(MySocket,(BYTE *)buffer,wMaxGet);
-					prase_in_buffer(buffer,wMaxGet);
-					if(tx_pack.finished) {
-						tx_index = 0;
-						PIE1bits.TXIE = 1;
-					}
-				} else {
-					//收到的数据太长了，丢掉它,以减轻PLC的计算和判断工作量
-					//清空SOCKET数据内存
-					TCPDiscard(MySocket);
-				}
-			}
-#else
+
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
 			if(wMaxGet <= PACK_MAX_RX_SIZE) {
 				TCPGetArray(MySocket,(BYTE *)buffer,wMaxGet);
@@ -238,8 +222,6 @@ void UART1TCPBridgeTask(void)
 				//清空SOCKET数据内存
 				TCPDiscard(MySocket);
 			}
-
-#endif
 			break;
 	}
 }
