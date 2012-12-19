@@ -22,10 +22,10 @@ typedef struct _DATA_TX_PACKET_T
 } DATA_TX_PACKET_T;
 
 
-extern DATA_RX_PACKET_T rx_pack;
-extern DATA_TX_PACKET_T tx_pack;
+//extern DATA_RX_PACKET_T rx_pack;
+//extern DATA_TX_PACKET_T tx_pack;
 
-extern unsigned int prase_in_buffer(unsigned char * src,unsigned int len);
-extern void pack_prase_in(unsigned char ch);
+//extern unsigned int prase_in_buffer(unsigned char * src,unsigned int len);
+//extern void pack_prase_in(unsigned char ch);
 
 #endif
