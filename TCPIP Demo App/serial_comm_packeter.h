@@ -3,9 +3,9 @@
 
 
 
-#define  PACK_MAX_RX_SIZE   16
+#define  PACK_MAX_RX_SIZE   32
 #define  RX_PACKS_MAX_NUM   2
-#define  TX_PACKS_MAX_NUM   1
+#define  TX_PACKS_MAX_NUM   2
 
 
 typedef struct _DATA_RX_PACKET_T
@@ -49,6 +49,8 @@ extern DATA_TX_CTL_T  tx_ctl;
 
 extern void pack_prase_in(unsigned char ch);
 extern DATA_RX_PACKET_T * GetFinishedPacket(void);
+extern DATA_TX_PACKET_T * find_ready_tx_buffer(void);
+extern DATA_TX_PACKET_T * prase_in_buffer(unsigned char * src,unsigned int len);
 extern void tx_free_useless_packet(unsigned int net_communication_count);
 extern unsigned int tx_pack_and_send(unsigned char * src,unsigned int len);
 

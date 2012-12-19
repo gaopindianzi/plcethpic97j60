@@ -211,7 +211,7 @@ DATA_TX_PACKET_T * prase_in_buffer(unsigned char * src,unsigned int len)
 		 return NULL;
 	 }
 	 if(1) {
-		 unsigned int crc = CRC16(src,len);
+		 unsigned int crc = CRC162(src,len);
 		 ptx->index = 0;
 		 ptx->buffer[ptx->index++] = STREAM_START;
 		 while(len--) {
@@ -301,21 +301,17 @@ DATA_RX_PACKET_T * GetFinishedPacket(void)
 
 void tx_free_useless_packet(unsigned int net_communication_count)
 {
-	unsigned int  i;
+	unsigned int i;
 	DATA_RX_PACKET_T * prx;
 	for(i=0;i<RX_PACKS_MAX_NUM;i++) {
 		prx = &rx_ctl.rx_packs[i]; 
 		if(prx->finished) {
-			if(prx->look_up_times == net_communication_count) {
+			if(prx->look_up_times >= net_communication_count) {
 				prx->finished = 0; //所有人都看过了，结果没有人需要，则丢弃它。
 			}
 		}
 	}
 }
-
-
-
-
 
 
 
