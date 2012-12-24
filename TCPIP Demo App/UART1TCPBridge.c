@@ -6,9 +6,11 @@
 
 #include "serial_comm_packeter.h"
 
+#define   THISINFO         1
+#define   THISERROR        1
 
 #define UART1TCPBRIDGE_PORT	   502
-#define BAUD_RATE		       (9600ul)
+#define BAUD_RATE		       (9600)
 
 
 #if defined(STACK_USE_UART1TCP_BRIDGE)
@@ -186,20 +188,32 @@ void UART1TCPBridgeTask(void)
 				LED2_IO ^= 1;
 			}
 
-			
+
 
 			prx =  GetFinishedPacket();
 			if(prx != NULL) {
 				if(prx->finished) {
-					wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
-			    	if(wMaxPut >= prx->index) {
-						//一次性发送完毕
-						TCPPutArray(MySocket, prx->buffer, prx->index);
-						TCPFlush(MySocket);
+					if(prx->index > 3) {
+						unsigned int port = prx->buffer[0];
+						port <<= 8; port |= prx->buffer[1];
+						if(port == 502) {
+							port = prx->index - 3;
+							wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
+							if(wMaxPut >= port) {
+								//一次性发送完毕
+								TCPPutArray(MySocket, &(prx->buffer[3]), port);
+								TCPFlush(MySocket);
+							} else {
+								//丢弃，发不了啊。。。丢弃
+							}
+							prx->finished = 0;
+						}
 					} else {
-						//超过了系统规定的最大内存，丢弃 
+						//没法判断
 					}
-					prx->finished = 0;
+					prx->look_up_times++;
+					//prx->finished = 0;  //测试用 
+					if(THISINFO)putrsUART((ROM char *)"\r\UART Bridge look at it");
 				}
 			}
 			PIE1bits.RCIE = 1;
@@ -208,9 +222,13 @@ void UART1TCPBridgeTask(void)
 
 
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
-			if(wMaxGet <= PACK_MAX_RX_SIZE) {
-				TCPGetArray(MySocket,(BYTE *)buffer,wMaxGet);
-				ptx = prase_in_buffer(buffer,wMaxGet);
+			if(wMaxGet > 0 && wMaxGet <= (PACK_MAX_RX_SIZE-3)) {
+				TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
+				//存私有数据
+				buffer[0] = 502 >> 8;
+				buffer[1] = 502 & 0xFF;
+				buffer[2] = 0;
+				ptx = prase_in_buffer(buffer,wMaxGet+3);
 				if(ptx != NULL) {
 					if(ptx->index > 0) {
 						//启动发送

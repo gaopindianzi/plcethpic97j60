@@ -7,6 +7,9 @@
 
 #include "serial_comm_packeter.h"
 
+#define   THISINFO         1
+#define   THISERROR        1
+
 
 
 #define STREAM_IDLE   0
@@ -322,6 +325,10 @@ void tx_free_useless_packet(unsigned int net_communication_count)
 		if(prx->finished) {
 			if(prx->look_up_times >= net_communication_count) {
 				prx->finished = 0; //所有人都看过了，结果没有人需要，则丢弃它。
+
+
+				if(THISINFO)putrsUART((ROM char *)"\r\rx all people look at it and no use,free it.");
+
 			}
 		}
 	}

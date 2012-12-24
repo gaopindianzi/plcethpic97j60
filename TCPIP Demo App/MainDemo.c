@@ -385,6 +385,8 @@ int main(void)
 		Tcp1CmdTask();
 		Tcp2CmdTask();
 
+		tx_free_useless_packet(4);
+
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service
 		if(DHCPBindCount != myDHCPBindCount)
