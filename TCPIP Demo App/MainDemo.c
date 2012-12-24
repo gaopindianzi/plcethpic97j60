@@ -368,9 +368,10 @@ int main(void)
         #if DEBUG_ON
 	    //DebugTask();
 		//DebugTcpTask();
+        #endif
+
 		DiscoverTask();
 		TaskLedFlash();
-        #endif
 
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
 	    UART1TCPBridgeTask();
@@ -382,10 +383,10 @@ int main(void)
 #endif
 
 		Tcp0CmdTask();
-		Tcp1CmdTask();
-		Tcp2CmdTask();
+		//Tcp1CmdTask();
+		//Tcp2CmdTask();
 
-		tx_free_useless_packet(4);
+		tx_free_useless_packet(2);
 
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service

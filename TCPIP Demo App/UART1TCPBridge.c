@@ -5,9 +5,10 @@
 #include "TCPIP Stack/TCPIP.h"
 
 #include "serial_comm_packeter.h"
+#include "debug.h"
 
-#define   THISINFO         1
-#define   THISERROR        1
+#define   THISINFO         0
+#define   THISERROR        0
 
 #define UART1TCPBRIDGE_PORT	   502
 #define BAUD_RATE		       (9600)
@@ -193,6 +194,7 @@ void UART1TCPBridgeTask(void)
 			prx =  GetFinishedPacket();
 			if(prx != NULL) {
 				if(prx->finished) {
+					prx->look_up_times++;
 					if(prx->index > 3) {
 						unsigned int port = prx->buffer[0];
 						port <<= 8; port |= prx->buffer[1];
@@ -211,7 +213,6 @@ void UART1TCPBridgeTask(void)
 					} else {
 						//没法判断
 					}
-					prx->look_up_times++;
 					//prx->finished = 0;  //测试用 
 					if(THISINFO)putrsUART((ROM char *)"\r\UART Bridge look at it");
 				}
@@ -222,18 +223,22 @@ void UART1TCPBridgeTask(void)
 
 
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
-			if(wMaxGet > 0 && wMaxGet <= (PACK_MAX_RX_SIZE-3)) {
-				TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
-				//存私有数据
-				buffer[0] = 502 >> 8;
-				buffer[1] = 502 & 0xFF;
-				buffer[2] = 0;
-				ptx = prase_in_buffer(buffer,wMaxGet+3);
+			if(wMaxGet > 0) {
+				DATA_TX_PACKET_T * ptx = find_next_empty_tx_buffer();
 				if(ptx != NULL) {
-					if(ptx->index > 0) {
-						//启动发送
-						PIE1bits.TXIE = 1;
-					}
+					wMaxGet = (wMaxGet > (PACK_MAX_RX_SIZE-3))?(PACK_MAX_RX_SIZE-3):wMaxGet;
+				    TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
+				    //存私有数据
+				    buffer[0] = 502 >> 8;
+				    buffer[1] = 502 & 0xFF;
+				    buffer[2] = 0;
+				    ptx = prase_in_buffer(buffer,wMaxGet+3);
+				    if(ptx != NULL) {
+					    if(ptx->index > 0) {
+						    //启动发送
+						    PIE1bits.TXIE = 1;
+					    }
+				    }
 				}
 			} else {
 				//收到的数据太长了，丢掉它,以减轻PLC的计算和判断工作量
@@ -241,6 +246,13 @@ void UART1TCPBridgeTask(void)
 				TCPDiscard(MySocket);
 			}
 			break;
+	}
+	//如果什么都没做，也必须通知接收者该不该释放
+	prx =  GetFinishedPacket();
+	if(prx != NULL) {
+		if(prx->finished) {
+			prx->look_up_times++;
+		}
 	}
 }
 

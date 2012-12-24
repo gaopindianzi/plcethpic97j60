@@ -53,6 +53,7 @@ extern DATA_TX_PACKET_T * find_ready_tx_buffer(void);
 extern DATA_TX_PACKET_T * prase_in_buffer(unsigned char * src,unsigned int len);
 extern void tx_free_useless_packet(unsigned int net_communication_count);
 extern unsigned int tx_pack_and_send(unsigned char * src,unsigned int len);
+extern DATA_TX_PACKET_T * find_next_empty_tx_buffer(void);
 
 extern unsigned int modbus_prase_read_multi_coils_ack(unsigned char slave_device,unsigned char * rx_buffer,unsigned int len,unsigned int startbit,unsigned int count);
 extern unsigned char modbus_read_multi_coils_request(unsigned int start_coils,unsigned int coils_num,unsigned char slave_device);

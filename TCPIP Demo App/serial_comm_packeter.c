@@ -7,6 +7,8 @@
 
 #include "serial_comm_packeter.h"
 
+extern void set_led_flash(unsigned int on_time,unsigned int off_time,unsigned int times);
+
 #define   THISINFO         1
 #define   THISERROR        1
 
@@ -109,8 +111,10 @@ void rx_find_next_empty_buffer(void)
 			break;
 		}
 	}
+	
 }
 
+extern void set_led_flash_int(unsigned int on_time,unsigned int off_time,unsigned int times);
 
 void pack_prase_in(unsigned char ch)
 {
@@ -126,6 +130,7 @@ void pack_prase_in(unsigned char ch)
 	   rx_find_next_empty_buffer();
 	   prx = rx_ctl.pcurrent_rx;
 	   if(prx == NULL) {
+		   set_led_flash_int(10,20,5);
 		   return ;
 	   }
    }
@@ -149,6 +154,7 @@ void pack_prase_in(unsigned char ch)
 			 prx->index -= 2;
 			 prx->look_up_times = 0;
              prx->finished = 1;
+			 set_led_flash_int(100,200,5);
          }
        }
 	   prx->state = STREAM_IDLE;

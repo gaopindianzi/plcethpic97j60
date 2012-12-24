@@ -661,6 +661,14 @@ void set_led_flash(unsigned int on_time,unsigned int off_time,unsigned int times
 	led_flash_off_time = off_time;
 	led_flash_times = times;
 }
+void set_led_flash_int(unsigned int on_time,unsigned int off_time,unsigned int times)
+{
+	led_work_mode = LED_FLASH_MODE;
+	led_flash_on_time = on_time;
+	led_flash_off_time = off_time;
+	led_flash_times = times;
+}
+
 
 
 void TaskLedFlash(void)

@@ -8,8 +8,8 @@
 #include "serial_comm_packeter.h"
 
 
-#define   THISINFO         1
-#define   THISERROR        1
+#define   THISINFO         0
+#define   THISERROR        0
 
 //#define  DEBUG_TCP_CLIENT
 
@@ -104,6 +104,7 @@ void Tcp0CmdTask(void)
 			prx =  GetFinishedPacket();
 			if(prx != NULL) {
 				if(prx->finished) {
+					prx->look_up_times++;
 					if(prx->index > 3) {
 						unsigned int port = prx->buffer[0];
 						port <<= 8; port |= prx->buffer[1];
@@ -122,8 +123,8 @@ void Tcp0CmdTask(void)
 						}
 					} else {
 						//没法判断
+						if(THISERROR)putrsUART((ROM char*)"\r\0:prx->index <= 3 error");
 					}
-					prx->look_up_times++;
 					if(THISINFO)putrsUART((ROM char *)"\r\ntcp 0 look at it");
 					//prx->finished = 0;  //测试用 
 				}
@@ -134,18 +135,22 @@ void Tcp0CmdTask(void)
 
 
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
-			if(wMaxGet > 0 && wMaxGet <= (PACK_MAX_RX_SIZE-3)) {
-				TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
-				//存私有数据
-				buffer[0] = 2000 >> 8;
-				buffer[1] = 2000 & 0xFF;
-				buffer[2] = 0;
-				ptx = prase_in_buffer(buffer,wMaxGet+3);
+			if(wMaxGet > 0) {
+				DATA_TX_PACKET_T * ptx = find_next_empty_tx_buffer();
 				if(ptx != NULL) {
-					if(ptx->index > 0) {
-						//启动发送
-						PIE1bits.TXIE = 1;
-					}
+					wMaxGet = (wMaxGet > (PACK_MAX_RX_SIZE-3))?(PACK_MAX_RX_SIZE-3):wMaxGet;
+				    TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
+				    //存私有数据
+				    buffer[0] = 2000 >> 8;
+				    buffer[1] = 2000 & 0xFF;
+				    buffer[2] = 0;
+				    ptx = prase_in_buffer(buffer,wMaxGet+3);
+				    if(ptx != NULL) {
+					    if(ptx->index > 0) {
+						    //启动发送
+						    PIE1bits.TXIE = 1;
+					    }
+				    }
 				}
 			} else {
 				//收到的数据太长了，丢掉它,以减轻PLC的计算和判断工作量
@@ -160,6 +165,13 @@ void Tcp0CmdTask(void)
 		default:
 			BridgeState = SM_HOME;
 			break;
+	}
+	//如果什么都没做，也必须通知接收者该不该释放
+	prx =  GetFinishedPacket();
+	if(prx != NULL) {
+		if(prx->finished) {
+			prx->look_up_times++;
+		}
 	}
 }
 
@@ -250,6 +262,7 @@ void Tcp1CmdTask(void)
 						}
 					} else {
 						//没法判断
+						if(THISERROR)putrsUART((ROM char*)"\r\1:prx->index <= 3 error");
 					}
 					prx->look_up_times++;
 					//prx->finished = 0;  //测试用 
@@ -263,17 +276,20 @@ void Tcp1CmdTask(void)
 
 			wMaxGet = TCPIsGetReady(MySocket);	// Get TCP RX FIFO byte count
 			if(wMaxGet > 0 && wMaxGet <= (PACK_MAX_RX_SIZE-3)) {
-				TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
-				//存私有数据
-				buffer[0] = 2000 >> 8;
-				buffer[1] = 2000 & 0xFF;
-				buffer[2] = 1;
-				ptx = prase_in_buffer(buffer,wMaxGet+3);
+				DATA_TX_PACKET_T * ptx = find_next_empty_tx_buffer();
 				if(ptx != NULL) {
-					if(ptx->index > 0) {
-						//启动发送
-						PIE1bits.TXIE = 1;
-					}
+				    TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
+				    //存私有数据
+				    buffer[0] = 2000 >> 8;
+				    buffer[1] = 2000 & 0xFF;
+				    buffer[2] = 1;
+				    ptx = prase_in_buffer(buffer,wMaxGet+3);
+				    if(ptx != NULL) {
+					    if(ptx->index > 0) {
+						    //启动发送
+						    PIE1bits.TXIE = 1;
+					    }
+				    }
 				}
 			} else {
 				//收到的数据太长了，丢掉它,以减轻PLC的计算和判断工作量
@@ -378,6 +394,7 @@ void Tcp2CmdTask(void)
 						}
 					} else {
 						//没法判断
+						if(THISERROR)putrsUART((ROM char*)"\r\2 prx->index <= 3 error");
 					}
 					prx->look_up_times++;
 					//prx->finished = 0;  //测试用 
