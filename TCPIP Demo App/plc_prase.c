@@ -148,6 +148,14 @@ void PlcInit(void)
 
 
 
+
+const unsigned char plc_test_flash[128] =
+{
+	PLC_LD,  0x00,0x00,
+	PLC_OUT, 0x01,0x00,
+	PLC_END
+};
+
 /**********************************************
  *  获取下一条指令的指令码
  *  也许是从EEPROM中读取的程序脚本
@@ -155,8 +163,8 @@ void PlcInit(void)
  */
 
 void read_next_plc_code(void)
-{
-	//read_plc_programer(plc_command_index,plc_command_array,sizeof(plc_command_array));
+{            
+	memcpy(plc_command_array,&plc_test_flash[plc_command_index],sizeof(plc_command_array));
 }
 
 void handle_plc_command_error(void)

@@ -377,7 +377,7 @@ int main(void)
 		TaskLedFlash();
 
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
-	    ///UART1TCPBridgeTask(); //502端口之用
+	    UART1TCPBridgeTask(); //502端口之用
 	    #endif
 
 
@@ -385,12 +385,12 @@ int main(void)
 		ResetTask();
 #endif
 
-		//Tcp0CmdTask();
-		//Tcp1CmdTask();
-		//Tcp2CmdTask();
+		Tcp0CmdTask();
+		Tcp1CmdTask();
+		Tcp2CmdTask();
 
 #ifdef STACK_TCP_MODBUS
-		//ModbusCmdTask();
+		ModbusCmdTask();
 #endif
 
 		//tx_free_useless_packet(2);
