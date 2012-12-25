@@ -197,10 +197,12 @@ unsigned char get_bitval(unsigned int index)
 	    index -= COUNTER_EVENT_BASE;
         bitval = BIT_IS_SET(counter_arrys.event_bits,index);
 	} else {
-		handle_plc_command_error();
+		//handle_plc_command_error();
+		bitval = 0;
 	}
 	return bitval;
 }
+
 static unsigned char get_last_bitval(unsigned int index)
 {
 	unsigned char bitval = 0;
@@ -224,7 +226,8 @@ static unsigned char get_last_bitval(unsigned int index)
 	    index -= COUNTER_EVENT_BASE;
         bitval = BIT_IS_SET(counter_arrys.event_bits_last,index);
 	} else {
-		handle_plc_command_error();
+		//handle_plc_command_error();
+		bitval = 0;
 	}
 	return bitval;
 }
@@ -247,7 +250,7 @@ void set_bitval(unsigned int index,unsigned char bitval)
             SET_BIT(counter_arrys.event_bits,index,0);
 		}
 	} else {
-		handle_plc_command_error();
+		//handle_plc_command_error();
 	}
 }
 

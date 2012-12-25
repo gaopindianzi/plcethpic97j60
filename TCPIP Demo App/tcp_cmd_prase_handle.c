@@ -15,12 +15,14 @@
 #include "hal_io_interface.h"
 #include "DS1302.h"
 #include "DS18B20.h"
+#include "plc_prase.h"
+#include "compiler.h"
 
 #define THISINFO           0
 #define THISERROR          0
 
 
-uint8_t    command_state;
+//uint8_t    command_state;
 
 
 
@@ -70,9 +72,22 @@ unsigned int CmdRevertIoOutIndex(CmdHead * cmd,unsigned int len)
       goto error;
     }
     //
-    cmd->cmd_option    = CMD_ACK_OK;	
-	io_out_convert_bits(0,io->io_msk,32);
-	io_out_get_bits(0,io->io_msk,32);
+    cmd->cmd_option    = CMD_ACK_OK;
+	//io_out_convert_bits(0,io->io_msk,32);
+	//io_out_get_bits(0,io->io_msk,32);
+	{
+		unsigned int i;
+		for(i=0;i<32;i++) {
+			if(BIT_IS_SET(io->io_msk,i)) {
+			    unsigned char bitval = get_bitval(IO_OUTPUT_BASE+i);
+			    set_bitval(IO_OUTPUT_BASE+i,!bitval);
+			}
+		}
+		for(i=0;i<32;i++) {
+			unsigned char bitval = get_bitval(IO_OUTPUT_BASE+i);
+			SET_BIT(io->io_msk,i,bitval);
+		}
+	}
 error:
     cmd->cmd_len       = sizeof(CmdIobitmap);
     cmd->data_checksum = 0;
