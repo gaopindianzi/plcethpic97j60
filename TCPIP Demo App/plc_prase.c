@@ -14,6 +14,7 @@
 #include "plc_command_def.h"
 #include "plc_prase.h"
 #include "compiler.h"
+#include "DS1302.h"
 #include "debug.h"
 
 #define THIS_INFO  1
@@ -147,15 +148,20 @@ void PlcInit(void)
 
 
 
-const unsigned char plc_test_flash[65] =
+const unsigned char plc_test_flash[128] =
 {
 	0,
 	PLC_LD,  0x00,0x00,
-	PLC_ANI, 0x08,20,
-	PLC_OUTT, 0x08,20,0x00,10,
-	PLC_LD,  0x08,20,
-	PLC_SEI, 0x01,0x00,
+	PLC_ANI, 0x08,23,
+	PLC_OUTT, 0x08,23,0x00,10,
+	PLC_LD,  0x08,23,
+	PLC_SEI, 0x04,100,
 
+	PLC_LD,  0x04,100,
+	PLC_OUT, 0x01,0x05,
+	PLC_INV,
+	PLC_OUT, 0x01,0x06,
+	
 
 	PLC_END
 };
@@ -252,6 +258,13 @@ unsigned char get_bitval(unsigned int index)
     } else if(index >= AUXI_RELAY_BASE && index < (AUXI_RELAY_BASE + AUXI_RELAY_COUNT)) {
 		index -= AUXI_RELAY_BASE;
         bitval = BIT_IS_SET(auxi_relays,index);
+    } else if(index >= AUXI_HOLDRELAY_BASE && index < (AUXI_HOLDRELAY_BASE + AUXI_HOLDRELAY_COUNT)) {
+		unsigned char B,b,reg;
+		index -= AUXI_HOLDRELAY_BASE;
+		B = index / 8;
+		b = index % 8;
+		RtcRamRead(B,&reg,1);
+		bitval = BIT_IS_SET(&reg,b);
 	} else if(index >= TIMING100MS_EVENT_BASE && index < (TIMING100MS_EVENT_BASE+TIMING100MS_EVENT_COUNT)) {
 		index -= TIMING100MS_EVENT_BASE;
         bitval = BIT_IS_SET(tim100ms_arrys.event_bits,index);
@@ -281,6 +294,14 @@ static unsigned char get_last_bitval(unsigned int index)
 	} else if(index >= AUXI_RELAY_BASE && index < (AUXI_RELAY_BASE + AUXI_RELAY_COUNT)) {
 		index -= AUXI_RELAY_BASE;
         bitval = BIT_IS_SET(auxi_relays_last,index);
+    } else if(index >= AUXI_HOLDRELAY_BASE && index < (AUXI_HOLDRELAY_BASE + AUXI_HOLDRELAY_COUNT)) {
+		unsigned char B,b,reg;
+		index -= AUXI_HOLDRELAY_BASE;
+		index += AUXI_HOLDRELAY_COUNT / 8; //后面一部分是上一次的
+		B = index / 8;
+		b = index % 8;
+		RtcRamRead(B,&reg,1);
+		bitval = BIT_IS_SET(&reg,b);
 	} else if(index >= TIMING100MS_EVENT_BASE && index < (TIMING100MS_EVENT_BASE+TIMING100MS_EVENT_COUNT)) {
 		index -= TIMING100MS_EVENT_BASE;
         bitval = BIT_IS_SET(tim100ms_arrys.event_bits_last,index);
@@ -307,6 +328,14 @@ void set_bitval(unsigned int index,unsigned char bitval)
 	} else if(index >= AUXI_RELAY_BASE && index < (AUXI_RELAY_BASE + AUXI_RELAY_COUNT)) {
 		index -= AUXI_RELAY_BASE;
         SET_BIT(auxi_relays,index,bitval);
+    } else if(index >= AUXI_HOLDRELAY_BASE && index < (AUXI_HOLDRELAY_BASE + AUXI_HOLDRELAY_COUNT)) {
+		unsigned char B,b,reg;
+		index -= AUXI_HOLDRELAY_BASE;
+		B = index / 8;
+		b = index % 8;
+		RtcRamRead(B,&reg,1);
+		SET_BIT(&reg,b,bitval);
+		RtcRamWrite(B,&reg,1);
 	} else if(index >= COUNTER_EVENT_BASE && index < (COUNTER_EVENT_BASE+COUNTER_EVENT_COUNT)) {
 	    //计数器的值不可以置位,只可以复位
 		if(!bitval) {
@@ -910,6 +939,15 @@ void PlcProcess(void)
 	memcpy(inputs_last,inputs_new,sizeof(inputs_new));
 	//辅助继电器
 	memcpy(auxi_relays_last,auxi_relays,sizeof(auxi_relays));
+	//
+	{//保持继电器的内存搬移
+		unsigned int i;
+		unsigned char reg;
+		for(i=0;i<AUXI_HOLDRELAY_COUNT/8;i++) { //RTC内存字节数的一半
+			RtcRamRead(i,&reg,1);
+			RtcRamWrite(i+AUXI_HOLDRELAY_COUNT/8,&reg,1); //拷贝到后半部分
+		}
+	}
 	//系统时间处理，可以拿到定时器中断处理
 	memcpy(tim100ms_arrys.event_bits_last,tim100ms_arrys.event_bits,sizeof(tim100ms_arrys.event_bits));
 	//

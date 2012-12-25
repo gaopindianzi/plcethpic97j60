@@ -331,8 +331,6 @@ int main(void)
         {
             t = TickGet();
             LED0_IO ^= 1;
-			//plc_code_test_init();
-			//PrintStringNum("\r\naiya ,ni hao a :",12356);
         }
 
         // This task performs normal stack task including checking

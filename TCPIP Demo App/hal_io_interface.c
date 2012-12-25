@@ -36,12 +36,12 @@ void Io_Out_PowerInit(void)
 	base = XEERead();
 	XEEEndRead();
 	if(base&0x01) {
-	    RtcRamRead(0,io_out,sizeof(io_out));
-	    io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
+	    //RtcRamRead(0,io_out,sizeof(io_out));
+	   // io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
 	} else {
-		memset(io_out,0,sizeof(io_out));
+		//memset(io_out,0,sizeof(io_out));
 	}
-	io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
+	//io_out_set_bits(0,io_out,REAL_IO_OUT_NUM);
 }
 
 void set_io_out_power_down_hold(unsigned char hold_on)
@@ -103,7 +103,7 @@ unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,u
 	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
 	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
 	//·µ»Ø
-	RtcRamWrite(0,io_out,sizeof(io_out));
+	//RtcRamWrite(0,io_out,sizeof(io_out));
 	//
 	return bitcount;
 }
@@ -154,7 +154,7 @@ unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsig
 	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
 	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
 
-	RtcRamWrite(0,io_out,sizeof(io_out));
+	//RtcRamWrite(0,io_out,sizeof(io_out));
 	//·µ»Ø
 	return bitcount;
 }
