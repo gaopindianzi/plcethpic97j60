@@ -10,13 +10,13 @@
 #define  AUXI_RELAY_COUNT                   100
 //
 #define  TIMING100MS_EVENT_BASE  2048  //0x08,0x00
-#define  TIMING100MS_EVENT_COUNT            80
+#define  TIMING100MS_EVENT_COUNT            24
 
 #define  TIMING1S_EVENT_BASE     3072  //0x0C,0x00
-#define  TIMING1S_EVENT_COUNT               80
+#define  TIMING1S_EVENT_COUNT               24
 
 #define  COUNTER_EVENT_BASE      4096  //0x10,0x00
-#define  COUNTER_EVENT_COUNT                80
+#define  COUNTER_EVENT_COUNT                24
 
 
 extern void PlcInit(void);

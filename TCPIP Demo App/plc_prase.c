@@ -151,14 +151,11 @@ const unsigned char plc_test_flash[65] =
 {
 	0,
 	PLC_LD,  0x00,0x00,
-	PLC_OUT, 0x01,0x00,
-	PLC_OUT, 0x01,0x01,
-	PLC_OUT, 0x01,0x02,
-	PLC_OUT, 0x01,0x03,
-	PLC_OUT, 0x01,0x04,
-	PLC_OUT, 0x01,0x05,
-	PLC_OUT, 0x01,0x06,
-	PLC_OUT, 0x01,0x07,
+	PLC_ANI, 0x08,20,
+	PLC_OUTT, 0x08,20,0x00,10,
+	PLC_LD,  0x08,20,
+	PLC_SEI, 0x01,0x00,
+
 
 	PLC_END
 };
@@ -217,10 +214,10 @@ void read_next_plc_code(void)
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	unsigned int size = sizeof(My_APP_Info_Struct) - base;
-	//if((plc_command_index + sizeof(plc_command_array)) > size) {
+	if((plc_command_index + sizeof(plc_command_array)) > size) {
 		//不允许读别的内存
-	//	plc_command_index = 0;
-	//}
+		plc_command_index = 0;
+	}
 	base = plc_command_index + base + 1;
 	XEEBeginRead(base);
 	for(i=0;i<sizeof(plc_command_array);i++) {
