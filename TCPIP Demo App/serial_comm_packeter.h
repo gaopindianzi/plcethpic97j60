@@ -58,5 +58,6 @@ extern DATA_TX_PACKET_T * find_next_empty_tx_buffer(void);
 extern unsigned int modbus_prase_read_multi_coils_ack(unsigned char slave_device,unsigned char * rx_buffer,unsigned int len,unsigned int startbit,unsigned int count);
 extern unsigned char modbus_read_multi_coils_request(unsigned int start_coils,unsigned int coils_num,unsigned char slave_device);
 
+extern unsigned int CRC16(unsigned char *Array,unsigned int Len);
 
 #endif

@@ -98,6 +98,7 @@
 #include "plc_prase.h"
 #include "UART1TCPBridge.h"
 #include "serial_comm_packeter.h"
+#include "modbus_imp.h"
 #include "debug.h"
 
 #define  THISINFO        1
@@ -309,9 +310,11 @@ int main(void)
     // job.
     // If a task needs very long time to do its job, it must be broken
     // down into smaller pieces so that other tasks can have CPU time.
-	putrsUART((ROM char*)"\r\n run in while loop.");
+	putrsUART((ROM char*)"\r\n run in main loop.");
 
 	set_led_flash(20,1500,0);
+
+	PlcInit();
 
     while(1)
     {
@@ -374,7 +377,7 @@ int main(void)
 		TaskLedFlash();
 
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
-	    UART1TCPBridgeTask();
+	    ///UART1TCPBridgeTask(); //502¶Ë¿ÚÖ®ÓÃ
 	    #endif
 
 
@@ -382,11 +385,17 @@ int main(void)
 		ResetTask();
 #endif
 
-		Tcp0CmdTask();
+		//Tcp0CmdTask();
 		//Tcp1CmdTask();
 		//Tcp2CmdTask();
 
-		tx_free_useless_packet(2);
+#ifdef STACK_TCP_MODBUS
+		//ModbusCmdTask();
+#endif
+
+		//tx_free_useless_packet(2);
+		PlcProcess();
+
 
         // If the DHCP lease has changed recently, write the new
         // IP address to the LCD display, UART, and Announce service

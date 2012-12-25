@@ -63,7 +63,7 @@
  *   disabled the following high-level application modules.
  */
 #define STACK_USE_UART					// Application demo using UART for IP address display and stack configuration
-#define STACK_USE_UART1TCP_BRIDGE       //自定义串口处理程序
+//#define STACK_USE_UART1TCP_BRIDGE       //自定义串口处理程序
 //#define STACK_USE_UART2TCP_BRIDGE		// UART to TCP Bridge application example
 //#define STACK_USE_IP_GLEANING
 #define STACK_USE_ICMP_SERVER
@@ -93,7 +93,8 @@
 
 #define STACK_USE_DS1302  //添加了DS1302实时时钟
 #define STACK_USE_DS18B20  //添加了温度传感器
-//#define STACK_USE_RUNING_RST   //添加了运行时复位功能,注意IO口的使用，不同的板子上，复位口不一样
+#define STACK_USE_RUNING_RST   //添加了运行时复位功能,注意IO口的使用，不同的板子上，复位口不一样
+#define STACK_TCP_MODBUS   
 
 // =======================================================================
 //   Data Storage Options
@@ -234,6 +235,7 @@
         #define TCP_PURPOSE_CMD_SERVER1      13
         #define TCP_PURPOSE_CMD_SERVER2      14
         #define TCP_PURPOSE_UART_1_TCP_BRIDGE  15
+        #define TCP_PURPOSE_MODBUS_SERVER0     16
 	#define END_OF_TCP_SOCKET_TYPES
 	
 	#if defined(__TCP_C)
@@ -278,6 +280,9 @@
 			{TCP_PURPOSE_CMD_SERVER2,TCP_ETH_RAM,80,80},
             #ifdef STACK_USE_UART1TCP_BRIDGE
 			{TCP_PURPOSE_UART_1_TCP_BRIDGE, TCP_ETH_RAM, 80, 80},
+            #endif
+            #ifdef STACK_TCP_MODBUS
+			{TCP_PURPOSE_MODBUS_SERVER0,TCP_ETH_RAM, 80, 80},
             #endif
 		};
 		#define END_OF_TCP_CONFIGURATION
