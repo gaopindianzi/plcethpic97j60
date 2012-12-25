@@ -320,18 +320,19 @@ int main(void)
 
 	set_led_flash(20,1500,0);
 
-	//plc_code_test_init();
+	plc_code_test_init();
 
 	PlcInit();
 
     while(1)
     {
         // Blink LED0 (right most one) every second.
-        if(TickGet() - t >= TICK_SECOND/10ul)
+        if(TickGet() - t >= TICK_SECOND)
         {
             t = TickGet();
             LED0_IO ^= 1;
-			PrintStringNum("\r\naiya ,ni hao a :",12356);
+			//plc_code_test_init();
+			//PrintStringNum("\r\naiya ,ni hao a :",12356);
         }
 
         // This task performs normal stack task including checking

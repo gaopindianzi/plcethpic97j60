@@ -163,6 +163,23 @@ const unsigned char plc_test_flash[65] =
 	PLC_END
 };
 
+int compare_rom(const unsigned char * dat,unsigned int len)
+{
+	unsigned int i;
+	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+
+	
+	for(i=0;i<sizeof(plc_test_flash);i++) {
+		XEEBeginRead(base+i);
+		if(XEERead() != plc_test_flash[i]) {
+			XEEEndRead();
+			PrintStringNum("error addr:",base+i);
+			return -1;
+		}
+		XEEEndRead();
+	}
+	return 0;
+}
 
 /**********************************************
  *  获取下一条指令的指令码
@@ -173,11 +190,25 @@ void plc_code_test_init(void)
 {
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
-	XEEBeginWrite(base);
+
+	PrintStringNum("offset of programmer :",base);
+	PrintStringNum("size of programmer :",sizeof(My_APP_Info_Struct) - base);
+
+#if 1
+	
 	for(i=0;i<sizeof(plc_test_flash);i++) {
+		XEEBeginWrite(base+i);
 		XEEWrite(plc_test_flash[i]);
+		XEEEndWrite();
 	}
-	XEEEndWrite();
+	
+
+	if(!compare_rom(plc_test_flash,sizeof(plc_test_flash))) {
+		PrintStringNum("compare successful!",0);
+	} else {
+		PrintStringNum("compare failed.",0);
+	}
+#endif
 }
 
 void read_next_plc_code(void)
@@ -196,6 +227,7 @@ void read_next_plc_code(void)
 		plc_command_array[i] = XEERead();
 	}
 	XEEEndRead();
+	//dumpstrhex("CMD:",plc_command_array,3);
 #else
 	memcpy(plc_command_array,&plc_test_flash[plc_command_index+1],sizeof(plc_command_array));
 	//strncpypgm2ram(plc_command_array,&plc_test_flash[plc_command_index+1],sizeof(plc_command_array));
