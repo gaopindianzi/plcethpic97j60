@@ -14,8 +14,8 @@
 
 #ifdef STACK_TCP_MODBUS
 
-#define THISINFO      1
-#define THISERROR     1
+#define THISINFO      0
+#define THISERROR     0
 
 #define  TCP_MODBUS_RX_MAX_LEN      32
 
@@ -34,26 +34,32 @@ unsigned int ForceSingleCoil(unsigned char * buffer,unsigned int len)
 {
 	typedef struct _force_single_coils_t
 	{
+		unsigned char idhi;
+		unsigned char idlo;
+		unsigned char protocal_hi;
+		unsigned char protocal_lo;
+		unsigned char length_hi;
+		unsigned char length_lo;
 		unsigned char slave_addr;
 		unsigned char function;
 		unsigned char start_addr_hi;
 		unsigned char start_addr_lo;
 		unsigned char reg_munber_hi;
 		unsigned char reg_number_lo;
-		unsigned char crc_hi;
-		unsigned char crc_lo;
+		//unsigned char crc_hi;
+		//unsigned char crc_lo;
 	} force_single_coils_t;
 	force_single_coils_t * pf = (force_single_coils_t *)buffer;
-	unsigned int crc = HSB_BYTES_TO_WORD(&pf->crc_hi);
+	//unsigned int crc = HSB_BYTES_TO_WORD(&pf->crc_hi);
 	if(THISINFO)putrsUART((ROM char*)"\r\nmodbus force single coil.");
 	if(len < sizeof(force_single_coils_t)) {
 		if(THISERROR)putrsUART((ROM char*)"\r\nmodbus len error!");
 		return 0;
 	}
-	if(CRC16(buffer,sizeof(force_single_coils_t)-2) != crc) {
-		if(THISERROR)putrsUART((ROM char*)"\r\nmodbus crc error!");
+	//if(CRC16(buffer,sizeof(force_single_coils_t)-2) != crc) {
+	//	if(THISERROR)putrsUART((ROM char*)"\r\nmodbus crc error!");
 		//return 0;
-	}
+	//}
 	if(pf->reg_munber_hi == 0xFF) {
 		set_bitval(HSB_BYTES_TO_WORD(&pf->start_addr_hi),1);
 	} else {
@@ -66,17 +72,29 @@ unsigned int read_input_discretes(unsigned char * buffer,unsigned int len)
 {
 	typedef struct __modbus_read_coil_status
 	{
+		unsigned char idhi;
+		unsigned char idlo;
+		unsigned char protocal_hi;
+		unsigned char protocal_lo;
+		unsigned char length_hi;
+		unsigned char length_lo;
 		unsigned char slave_addr;
 		unsigned char function;
 		unsigned char start_addr_hi;
 		unsigned char start_addr_lo;
 		unsigned char reg_munber_hi;
 		unsigned char reg_number_lo;
-		unsigned char crc_hi;
-		unsigned char crc_lo;
+		//unsigned char crc_hi;
+		//unsigned char crc_lo;
 	} modbus_read_coil_status;
 	typedef struct __modbus_read_coil_status_ack
 	{
+		unsigned char idhi;
+		unsigned char idlo;
+		unsigned char protocal_hi;
+		unsigned char protocal_lo;
+		unsigned char length_hi;
+		unsigned char length_lo;
 		unsigned char slave_addr;
 		unsigned char function;
 		unsigned char byte_count;
@@ -86,15 +104,16 @@ unsigned int read_input_discretes(unsigned char * buffer,unsigned int len)
 	} modbus_read_coil_status_ack;
 	modbus_read_coil_status * pm = (modbus_read_coil_status *)buffer;
 	modbus_read_coil_status_ack * pack = (modbus_read_coil_status_ack *)buffer;
-	unsigned int crc = HSB_BYTES_TO_WORD(&pm->crc_hi);
+	if(THISINFO)putrsUART((ROM char*)"\r\n+read_input_discretes");
+	//unsigned int crc = HSB_BYTES_TO_WORD(&pm->crc_hi);
 	if(len < sizeof(modbus_read_coil_status)) {
 		if(THISERROR)putrsUART((ROM char *)"\r\n read input or coils data len error!");
 		return 0;
 	}
-	if(CRC16(buffer,sizeof(modbus_read_coil_status)-2) != crc) {
-		if(THISERROR)putrsUART((ROM char*)"\r\nmodbus crc error!");
+	//if(CRC16(buffer,sizeof(modbus_read_coil_status)-2) != crc) {
+	//	if(THISERROR)putrsUART((ROM char*)"\r\nmodbus crc error!");
 		//return 0;
-	}
+	//}
 
 	{
 		unsigned int i;
@@ -106,13 +125,16 @@ unsigned int read_input_discretes(unsigned char * buffer,unsigned int len)
 		for(i=0;i<num;i++) {
 			SET_BIT((buffer+sizeof(modbus_read_coil_status_ack)),i,get_bitval(start+i));
 		}
-		crc = CRC16(buffer,sizeof(modbus_read_coil_status_ack)+pack->byte_count);
-		{
-			crc_t * pc = (crc_t *)(buffer+sizeof(modbus_read_coil_status_ack)+pack->byte_count);
-			pc->crc_hi = crc >> 8;
-			pc->crc_lo = crc & 0xFF;
-		}
-		return sizeof(modbus_read_coil_status_ack)+pack->byte_count+2;
+		//crc = CRC16(buffer,sizeof(modbus_read_coil_status_ack)+pack->byte_count);
+		//{
+		//	crc_t * pc = (crc_t *)(buffer+sizeof(modbus_read_coil_status_ack)+pack->byte_count);
+		//	pc->crc_hi = crc >> 8;
+		//	pc->crc_lo = crc & 0xFF;
+		//}
+		//return sizeof(modbus_read_coil_status_ack)+pack->byte_count+2;
+		pack->length_hi = 0;
+		pack->length_lo = 3+pack->byte_count;
+		return sizeof(modbus_read_coil_status_ack)+pack->byte_count;
 	}
 
 	return 0;
@@ -123,11 +145,18 @@ unsigned int ModbusCmdPrase(unsigned char * buffer,unsigned int len)
 {
 	typedef struct _modbus_head_t
 	{
+		unsigned char idhi;
+		unsigned char idlo;
+		unsigned char protocal_hi;
+		unsigned char protocal_lo;
+		unsigned char length_hi;
+		unsigned char length_lo;
 		unsigned char slave_addr;
 		unsigned char function;
 	} modbus_head_t;
 	modbus_head_t * ph = (modbus_head_t *)buffer;
-	if(THISINFO)putrsUART((ROM char*)"\r\n+ModbusCmdPrase");
+	//if(THISINFO)putrsUART((ROM char*)"\r\n+ModbusCmdPrase()");
+	if(THISINFO)dumpstrhex("\r\nmodbus Rx:",buffer,len);
 	if(len < sizeof(modbus_head_t)) {
 		if(THISERROR)putrsUART((ROM char*)"\r\nmodbus head error!!");
 		return 0;
@@ -142,6 +171,7 @@ unsigned int ModbusCmdPrase(unsigned char * buffer,unsigned int len)
 	case READ_COILS:
 	case READ_DISCRETES:    return read_input_discretes(buffer,len);
 	default:
+		if(THISERROR)putrsUART((ROM char*)"\r\nmodbus unknow command error!!");
 		return 0;
 	}
 }
