@@ -24,11 +24,12 @@ extern unsigned char read_plc_programer(unsigned int index,unsigned char * buffe
 
 #define  GET_MEMBER_BASE_OF_STRUCT(StructType,MemberName)    (&(((StructType *)0)->MemberName) - ((StructType *)0))
 
-typedef struct __attribute__((__packed__)) _My_APP_Info_Struct
+typedef struct _My_APP_Info_Struct
 {
 	APP_CONFIG     oapp;
 	unsigned char  io_out_hold;
-	unsigned char  plc_programer[1024*3];
+	unsigned char  plc_programer;
+	unsigned char  plc_programer2[4095];
 } My_APP_Info_Struct; 
 
 

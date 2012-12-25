@@ -134,6 +134,7 @@ static void ProcessIO(void);
 	#endif
 	{
 	    TickUpdate();
+		
 	}
 	
 	#if defined(HI_TECH_C)
@@ -188,7 +189,10 @@ static void ProcessIO(void);
 /***************/
 unsigned char led_reg;
 
-void DebugStringHex(const char * str,unsigned long num,const char * tail);
+
+
+//extern void DebugStringNum(const ROM char *str,unsigned int num,const ROM char *tail);
+
 
 //
 // Main application entry point.
@@ -236,6 +240,8 @@ int main(void)
 	// Initialize Stack and application related NV variables into AppConfig.
 	putrsUART((ROM char*)"\r\n InitAppConfig().");
 	InitAppConfig();
+
+
 
     // Initiates board setup process if button is depressed 
 	// on startup
@@ -314,15 +320,18 @@ int main(void)
 
 	set_led_flash(20,1500,0);
 
+	//plc_code_test_init();
+
 	PlcInit();
 
     while(1)
     {
         // Blink LED0 (right most one) every second.
-        if(TickGet() - t >= TICK_SECOND/2ul)
+        if(TickGet() - t >= TICK_SECOND/10ul)
         {
             t = TickGet();
             LED0_IO ^= 1;
+			PrintStringNum("\r\naiya ,ni hao a :",12356);
         }
 
         // This task performs normal stack task including checking
@@ -394,6 +403,7 @@ int main(void)
 #endif
 
 		//tx_free_useless_packet(2);
+		plc_timing_tick_process();
 		PlcProcess();
 
 
@@ -486,6 +496,29 @@ static void ProcessIO(void)
     // Convert 10-bit value into ASCII string
     uitoa(*((WORD*)(&ADRESL)), AN0String);
 #endif
+}
+
+
+unsigned char lock_counter = 0;
+
+void sys_lock(void)
+{
+    INTCONbits.GIEH = 0;
+    INTCONbits.GIEL = 0;
+	lock_counter++;
+}
+
+void sys_unlock(void)
+{
+	if(lock_counter == 0) {
+        INTCONbits.GIEH = 1;
+        INTCONbits.GIEL = 1;
+	} else {
+		if(--lock_counter == 0) {
+            INTCONbits.GIEH = 1;
+            INTCONbits.GIEL = 1;			
+		}
+	}
 }
 
 /*********************************************************************
@@ -828,6 +861,8 @@ void ResetToDefaultConfig(void)
     SPIFlashWrite(0x00);
 #endif
 }
+
+
 
 #if (defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)) && (defined(STACK_USE_MPFS) || defined(STACK_USE_MPFS2))
 void SaveAppConfig(void)

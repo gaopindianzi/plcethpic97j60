@@ -14,9 +14,10 @@
 #include "plc_command_def.h"
 #include "plc_prase.h"
 #include "compiler.h"
+#include "debug.h"
 
-#define THIS_INFO  0
-#define THIS_ERROR 0
+#define THIS_INFO  1
+#define THIS_ERROR 1
 
 
 //100ms计时器的控制数据结构
@@ -80,7 +81,7 @@ unsigned char bit_stack_sp;   //比特堆栈的指针
 
 //指令编码
 unsigned int  plc_command_index;     //当前指令索引，
-unsigned char plc_command_array[20]; //当前指令字节编码
+unsigned char plc_command_array[32]; //当前指令字节编码
 #define       PLC_CODE     (plc_command_array[0])
 
 //处理器状态
@@ -95,30 +96,26 @@ unsigned int  net_global_send_index = 0; //发送令牌，指示下一个个发送的令牌
 //内部用系统计数器
 static TICK  last_tick;
 static TICK  last_tick1s;
-static void sys_time_tick_init(void)
+
+void sys_time_tick_init(void)
 {
 	last_tick = TickGet();
 	last_tick1s = TickGet();
 }
-static unsigned long sys_time_tick_process(void)
+void plc_timing_tick_process(void)
 {
 	TICK curr = TickGet();
 	if((curr - last_tick) >= TICK_SECOND / 10) {
 		time100ms_come_flag++;
 		last_tick = curr;
+		//if(THIS_INFO)putrsUART((ROM char*)"time tick 100ms");
 	}
 	if((curr - last_tick1s) >= TICK_SECOND) {
 		time1s_come_flag++;
 		last_tick1s = curr;
+		//if(THIS_INFO)putrsUART((ROM char*)"time tick 1s");
 	}
 }
-
-
-
-
-
-
-void timing_cell_prcess(void);
 
 
 /*********************************************
@@ -144,27 +141,65 @@ void PlcInit(void)
 	memset(&tim100ms_arrys,0,sizeof(tim100ms_arrys));
 	memset(&tim1s_arrys,0,sizeof(tim1s_arrys));
     memset(&counter_arrys,0,sizeof(counter_arrys));
+	sys_time_tick_init();
 }
 
 
 
 
-const unsigned char plc_test_flash[128] =
+const unsigned char plc_test_flash[65] =
 {
+	0,
 	PLC_LD,  0x00,0x00,
 	PLC_OUT, 0x01,0x00,
+	PLC_OUT, 0x01,0x01,
+	PLC_OUT, 0x01,0x02,
+	PLC_OUT, 0x01,0x03,
+	PLC_OUT, 0x01,0x04,
+	PLC_OUT, 0x01,0x05,
+	PLC_OUT, 0x01,0x06,
+	PLC_OUT, 0x01,0x07,
+
 	PLC_END
 };
+
 
 /**********************************************
  *  获取下一条指令的指令码
  *  也许是从EEPROM中读取的程序脚本
  *  这里一次性读取下一个指令，长度为最长指令长度
  */
+void plc_code_test_init(void)
+{
+	unsigned int i;
+	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+	XEEBeginWrite(base);
+	for(i=0;i<sizeof(plc_test_flash);i++) {
+		XEEWrite(plc_test_flash[i]);
+	}
+	XEEEndWrite();
+}
 
 void read_next_plc_code(void)
-{            
-	memcpy(plc_command_array,&plc_test_flash[plc_command_index],sizeof(plc_command_array));
+{
+#if 1
+	unsigned int i;
+	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+	unsigned int size = sizeof(My_APP_Info_Struct) - base;
+	//if((plc_command_index + sizeof(plc_command_array)) > size) {
+		//不允许读别的内存
+	//	plc_command_index = 0;
+	//}
+	base = plc_command_index + base + 1;
+	XEEBeginRead(base);
+	for(i=0;i<sizeof(plc_command_array);i++) {
+		plc_command_array[i] = XEERead();
+	}
+	XEEEndRead();
+#else
+	memcpy(plc_command_array,&plc_test_flash[plc_command_index+1],sizeof(plc_command_array));
+	//strncpypgm2ram(plc_command_array,&plc_test_flash[plc_command_index+1],sizeof(plc_command_array));
+#endif
 }
 
 void handle_plc_command_error(void)
@@ -172,6 +207,7 @@ void handle_plc_command_error(void)
 	//提示第几条指令出错
 	//然后复位，或停止运行
 	plc_command_index  = 0;
+	if(THIS_ERROR)putrsUART((ROM char*)"\r\nhandle_plc_command_error!!!!!!\r\n");
 }
 
 unsigned char get_bitval(unsigned int index)
@@ -279,7 +315,7 @@ void timing_cell_prcess(void)
 					}
 					if(ptiming->counter[i] == 0) {
 					    SET_BIT(ptiming->event_bits,i,1);
-						if(THIS_INFO)printf("timing100ms event come:%d\r\n",i);
+						if(THIS_INFO)putrsUART((ROM char*)"timing100ms event come.");
 					}
 				}
 			} else {
@@ -289,7 +325,7 @@ void timing_cell_prcess(void)
 				    //不保持
 					ptiming->counter[i] = 0;
 					SET_BIT(ptiming->event_bits,i,0);
-
+					//if(THIS_INFO)putrsUART((ROM char*)"timing100ms end.");
 				}
 			}
 	    }
@@ -307,10 +343,11 @@ void timing_cell_prcess(void)
 					    ptiming->counter[i] -= counter;
 					} else {
 					    ptiming->counter[i] = 0;
+						if(THIS_INFO)putrsUART((ROM char*)"1s come.");
 					}
 					if(ptiming->counter[i] == 0) {
 					    SET_BIT(ptiming->event_bits,i,1);
-						if(THIS_INFO)printf("timing100ms event come:%d\r\n",i);
+						if(THIS_INFO)putrsUART((ROM char*)"timing1s event [come].");
 					}
 				}
 			} else {
@@ -320,7 +357,7 @@ void timing_cell_prcess(void)
 				    //不保持
 					ptiming->counter[i] = 0;
 					SET_BIT(ptiming->event_bits,i,0);
-
+					//if(THIS_INFO)putrsUART((ROM char*)"timing1s end.");
 				}
 			}
 	    }
@@ -342,6 +379,7 @@ static void timing_cell_start(unsigned int index,unsigned int event_count,unsign
 			SET_BIT(ptiming->upordown_bits,index,upordown);
 			SET_BIT(ptiming->holding_bits, index,holding);
 			SET_BIT(ptiming->event_bits,   index,0);
+			if(THIS_INFO)putrsUART((ROM char*)"timing100ms start.");
 		}
 	} else if(index >= TIMING1S_EVENT_BASE && index < (TIMING1S_EVENT_BASE+TIMING1S_EVENT_COUNT)) {
 	    TIM1S_ARRAYS_T * ptiming = &tim1s_arrys;
@@ -352,6 +390,7 @@ static void timing_cell_start(unsigned int index,unsigned int event_count,unsign
 			SET_BIT(ptiming->upordown_bits,index,upordown);
 			SET_BIT(ptiming->holding_bits, index,holding);
 			SET_BIT(ptiming->event_bits,   index,0);
+			if(THIS_INFO)putrsUART((ROM char*)"timing1s start.");
 		}
 	} else {
 		handle_plc_command_error();
@@ -373,11 +412,11 @@ static void timing_cell_stop(unsigned int index)
 	    TIM1S_ARRAYS_T * ptiming = &tim1s_arrys;
 		index -= TIMING1S_EVENT_BASE;
 		if(BIT_IS_SET(ptiming->enable_bits,index)) {
-		    if(THIS_INFO)printf("stop timeimg 1s :%d\r\n",index);
+		    if(THIS_INFO)putrsUART((ROM char*)"timing1ms stop.");
 		    SET_BIT(ptiming->enable_bits,  index,0);
 		}
 	} else {
-	    if(THIS_ERROR)printf("timing stop error:%d\r\n",index);
+		if(THIS_ERROR)putrsUART((ROM char*)"timing stop error");
 	    handle_plc_command_error();
 	}
 }
@@ -828,7 +867,7 @@ void PlcProcess(void)
     case PLC_NETWW:
 	default:
 	    handle_plc_command_error();
-		break;
+		goto plc_command_finished;
 	case PLC_NONE: //空指令，直接跳过
         plc_command_index++;
 		break;

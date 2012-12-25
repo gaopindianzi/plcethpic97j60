@@ -37,11 +37,40 @@ void DebugString(const char * ramstr)
 }
 
 
-void DebugStringNum(const char * str,unsigned int num,const char * tail)
+void putcharc(unsigned char ch)
+{
+	while(BusyUSART());
+	putcUART(ch);
+}
+
+void putstrs(ROM char *data)
+{
+	while(*data) {
+		putcharc(*data++);
+	}
+}
+
+void printhex(unsigned char reg)
+{
+	unsigned d = reg >> 4;
+	putcharc((d>>9)?(d-10+'A'):(d+'0'));
+	d = reg & 0xF;
+	putcharc((d>>9)?(d-10+'A'):(d+'0'));
+}
+
+void dumpstrhex(ROM char *str,unsigned char * buffer,unsigned int len)
+{
+	unsigned int i;
+	for(i=0;i<len;i++) {
+		printhex(buffer[i]);
+	}
+}
+
+void PrintStringNum(ROM char *str,unsigned int num)
 {
 	unsigned char buffer[20];
 	unsigned char i;
-	DebugString(str);
+	putstrs(str);
 	i = 0;
 	while(1) {
 		char n = num  % 10;
@@ -54,13 +83,39 @@ void DebugStringNum(const char * str,unsigned int num,const char * tail)
 	if(i) {
 		while(1) {
 		    i--;
-		    DebugPrintChar(buffer[i]);
+		    putcharc(buffer[i]);
 			if(i == 0) {
 				break;
 			}
 		}
 	}
-	DebugString(tail);
+}
+
+
+void DebugStringNum(ROM char *str,unsigned int num,ROM char **tail)
+{
+	unsigned char buffer[20];
+	unsigned char i;
+	putstrs(str);
+	i = 0;
+	while(1) {
+		char n = num  % 10;
+		buffer[i++] = n + '0';
+		num /= 10;
+		if(num == 0){
+			break;
+		}
+	}
+	if(i) {
+		while(1) {
+		    i--;
+		    putcharc(buffer[i]);
+			if(i == 0) {
+				break;
+			}
+		}
+	}
+	putstrs(tail);
 }
 
 

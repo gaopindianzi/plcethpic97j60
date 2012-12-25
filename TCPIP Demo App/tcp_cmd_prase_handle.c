@@ -114,8 +114,20 @@ unsigned int CmdSetIoOutValue(CmdHead * cmd,unsigned int len)
 		io->io_count = io_out_get_bits(0,io->io_value,32);
 		goto error;
     }
-	io_out_set_bits(0,io->io_value,io->io_count);
-	io->io_count = io_out_get_bits(0,io->io_value,32); //32个继电器，这个指令固定支持32位比特数量。
+	//io_out_set_bits(0,io->io_value,io->io_count);
+	//io->io_count = io_out_get_bits(0,io->io_value,32); //32个继电器，这个指令固定支持32位比特数量。
+	{
+		unsigned int i;
+		io->io_count = (io->io_count >= 32)?32:io->io_count;
+		for(i=0;i<io->io_count;i++) {
+			set_bitval(IO_OUTPUT_BASE+i,BIT_IS_SET(io->io_value,i));
+		}
+		for(i=0;i<32;i++) {
+			unsigned char bitval = get_bitval(IO_OUTPUT_BASE+i);
+			SET_BIT(io->io_value,i,bitval);
+		}
+	}
+
 	cmd->cmd_option    = CMD_ACK_OK;
     cmd->cmd_len       = sizeof(CmdIoValue);
     cmd->data_checksum = 0;
@@ -141,6 +153,15 @@ unsigned int CmdGetIoOutValue(CmdHead * cmd,unsigned int len)
 {
 	CmdIoValue    *  sio  = (CmdIoValue *)GET_CMD_DATA(cmd);
 	sio->io_count = io_out_get_bits(0,sio->io_value,32);
+	{
+		unsigned int i;
+		sio->io_count = (sio->io_count >= 32)?32:sio->io_count;
+		for(i=0;i<sio->io_count;i++) {
+			unsigned char bitval = get_bitval(IO_OUTPUT_BASE+i);
+			SET_BIT(sio->io_value,i,bitval);
+		}
+	}
+
     cmd->cmd_option    = CMD_ACK_OK;
     cmd->cmd_len       = sizeof(CmdIoValue);
     cmd->data_checksum = 0;
@@ -163,7 +184,7 @@ unsigned int CmdGetIoOutValue(CmdHead * cmd,unsigned int len)
  */
 unsigned int CmdSetClrVerIoOutOneBit(CmdHead * cmd,unsigned int len,unsigned char setmode)
 {
-	unsigned char reg;
+	//unsigned char reg;
 	unsigned int  num;
 	CmdIoOneBit      *   io  =  (CmdIoOneBit *)GET_CMD_DATA(cmd);
     CmdIoValue       *  sio   = (CmdIoValue *)GET_CMD_DATA(cmd);
@@ -179,16 +200,27 @@ unsigned int CmdSetClrVerIoOutOneBit(CmdHead * cmd,unsigned int len,unsigned cha
 	num <<= 8;
 	num += io->io_bitnum[0];
 	if(setmode == 0) {
-		reg = 0x01;
-	    io_out_set_bits(num,&reg,1);
+		//reg = 0x01;
+	    //io_out_set_bits(num,&reg,1);
+		set_bitval(IO_OUTPUT_BASE+num,1);
 	} else if(setmode == 1) {
-		reg = 0x00;
-	    io_out_set_bits(num,&reg,1);
+		//reg = 0x00;
+	    //io_out_set_bits(num,&reg,1);
+		set_bitval(IO_OUTPUT_BASE+num,0);
 	} else if(setmode == 2) {
-		reg = 0x01;
-		io_out_convert_bits(num,&reg,1);
+		//reg = 0x01;
+		//io_out_convert_bits(num,&reg,1);
+		set_bitval(IO_OUTPUT_BASE+num,!get_bitval(IO_OUTPUT_BASE+num));
 	}
 	sio->io_count = io_out_get_bits(0,sio->io_value,32);
+	{
+		unsigned int i;
+		sio->io_count = (sio->io_count >= 32)?32:sio->io_count;
+		for(i=0;i<sio->io_count;i++) {
+			unsigned char bitval = get_bitval(IO_OUTPUT_BASE+i);
+			SET_BIT(sio->io_value,i,bitval);
+		}
+	}
 error:
     cmd->cmd_len       = sizeof(CmdIoValue);
     cmd->data_checksum = 0;
@@ -212,6 +244,15 @@ unsigned int CmdGetIoInValue(CmdHead * cmd,unsigned int len)
 {
     CmdIoValue    *  sio  = (CmdIoValue *)GET_CMD_DATA(cmd);
 	sio->io_count = io_in_get_bits(0,sio->io_value,32);
+	{
+		unsigned int i;
+		sio->io_count = (sio->io_count >= 32)?32:sio->io_count;
+		for(i=0;i<sio->io_count;i++) {
+			unsigned char bitval = get_bitval(IO_INPUT_BASE+i);
+			SET_BIT(sio->io_value,i,bitval);
+		}
+	}
+
     cmd->cmd_option    = CMD_ACK_OK;
     cmd->cmd_len       = sizeof(CmdIoValue);
     cmd->data_checksum = 0;

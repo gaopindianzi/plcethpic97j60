@@ -18,6 +18,9 @@ extern void TaskLedFlash(void);
 extern void set_led_flash(unsigned int on_time,unsigned int off_time,unsigned int times);
 
 
+void dumpstrhex(ROM char *str,unsigned char * buffer,unsigned int len);
+void PrintStringNum(ROM char *str,unsigned int num);
+
 //extern void DebugTcpTask(void);
 extern void DiscoverTask(void);
 
