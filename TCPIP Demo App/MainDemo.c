@@ -320,9 +320,10 @@ int main(void)
 
 	set_led_flash(20,1500,0);
 
-	plc_code_test_init();
+	//plc_code_test_init();
 
 	PlcInit();
+	//PLC内存 52起始地址,4096大小
 
     while(1)
     {
@@ -859,6 +860,7 @@ void ResetToDefaultConfig(void)
     SPIFlashBeginWrite(0x0000);
     SPIFlashWrite(0x00);
 #endif
+	plc_code_test_init();
 }
 
 

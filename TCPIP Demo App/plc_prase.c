@@ -146,23 +146,46 @@ void PlcInit(void)
 }
 
 
+/*
+    指令                      地址         数据
+51 00 00 00 00 05 00  +   34 00 01 00  + 00  //0
+51 00 00 00 00 05 00  +   35 00 01 00  + FF  //end  
+51 00 00 00 00 07 00  +   36 00 03 00  + 01 00 00   //ld 0x00,0x00
+51 00 00 00 00 07 00  +   39 00 03 00  + 04 01 00   //ld 0x00,0x00
+51 00 00 00 00 05 00  +   42 00 01 00  + 14
+51 00 00 00 00 07 00  +   43 00 03 00  + 04 01 01   //ld 0x00,0x00
+51 00 00 00 00 05 00  +   46 00 01 00  + FF    //end
+
+/-------------------+-----------+-- -- --
+51 00 00 00 00 05 00 34 00 01 00 00 
+51 00 00 00 00 05 00 35 00 01 00 FF 
+51 00 00 00 00 05 00 35 00 01 00 00 
+
+51 00 00 00 00 07 00 36 00 03 00 03 00 00
+51 00 00 00 00 07 00 39 00 03 00 04 01 00
+51 00 00 00 00 05 00 42 00 01 00 14
+51 00 00 00 00 07 00 43 00 03 00 04 01 01
+51 00 00 00 00 05 00 46 00 01 00 FF
+
+/-------------------+-----------+-- -- --
+50 00 00 00 00 05 00 34 00 14 00
+
+50 00 00 01 00 18 00 34 00 14 00 00 03 00 00 04 01 00 14 04 01 01 ff 00 00 00 00 00 00 00 00 
+
+03 08 00 
+16 08 00 00 0A 
+01 08 00 
+23 01 00 
+14 
+23 01 01 
+FF
+
+*/
 
 
 const unsigned char plc_test_flash[128] =
 {
 	0,
-	PLC_LD,  0x00,0x00,
-	PLC_ANI, 0x08,23,
-	PLC_OUTT, 0x08,23,0x00,10,
-	PLC_LD,  0x08,23,
-	PLC_SEI, 0x04,100,
-
-	PLC_LD,  0x04,100,
-	PLC_OUT, 0x01,0x05,
-	PLC_INV,
-	PLC_OUT, 0x01,0x06,
-	
-
 	PLC_END
 };
 
@@ -194,8 +217,9 @@ void plc_code_test_init(void)
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 
-	PrintStringNum("offset of programmer :",base);
-	PrintStringNum("size of programmer :",sizeof(My_APP_Info_Struct) - base);
+
+
+
 
 #if 1
 	
@@ -207,11 +231,16 @@ void plc_code_test_init(void)
 	
 
 	if(!compare_rom(plc_test_flash,sizeof(plc_test_flash))) {
-		PrintStringNum("compare successful!",0);
+		PrintStringNum("\r\ncompare successful!",0);
 	} else {
-		PrintStringNum("compare failed.",0);
+		PrintStringNum("\r\ncompare failed.",0);
 	}
 #endif
+
+
+	PrintStringNum("\r\noffset of programmer :",base);
+	PrintStringNum("\r\nsize of programmer :",sizeof(My_APP_Info_Struct) - base);
+	PrintStringNum("\r\nsize of My_APP_Info_Struct :",sizeof(My_APP_Info_Struct));
 }
 
 void read_next_plc_code(void)
@@ -241,7 +270,7 @@ void handle_plc_command_error(void)
 {
 	//提示第几条指令出错
 	//然后复位，或停止运行
-	plc_command_index  = 0;
+	plc_cpu_stop = 1;
 	if(THIS_ERROR)putrsUART((ROM char*)"\r\nhandle_plc_command_error!!!!!!\r\n");
 }
 
@@ -853,6 +882,7 @@ void PlcProcess(void)
 	//初始化通信令牌
     net_communication_count = 0; ////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!plc_test_buffer[0]; //打个比喻，代码里面存在5处发送
 	plc_command_index = 0;
+	plc_cpu_stop = 0;
  next_plc_command:
 	read_next_plc_code();
 	//逻辑运算,调用一次，运行一次用户的程序
@@ -929,6 +959,9 @@ void PlcProcess(void)
 	case PLC_NONE: //空指令，直接跳过
         plc_command_index++;
 		break;
+	}
+	if(plc_cpu_stop) {
+		goto plc_command_finished;
 	}
 	goto next_plc_command;
  plc_command_finished:

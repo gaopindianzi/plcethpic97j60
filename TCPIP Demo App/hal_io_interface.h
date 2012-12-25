@@ -29,7 +29,7 @@ typedef struct _My_APP_Info_Struct
 	APP_CONFIG     oapp;
 	unsigned char  io_out_hold;
 	unsigned char  plc_programer;
-	unsigned char  plc_programer2[4095];
+	unsigned char  plc_programer2[1024*4-1];
 } My_APP_Info_Struct; 
 
 

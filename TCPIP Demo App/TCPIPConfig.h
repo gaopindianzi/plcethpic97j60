@@ -54,6 +54,7 @@
 #include "TCPIP Stack/TCPIP.h"
 #define GENERATED_BY_TCPIPCONFIG "Version 1.0.3065.16350"
 
+
 // =======================================================================
 //   Application Options
 // =======================================================================
@@ -133,7 +134,8 @@
  *   For MPFS Classic, this setting must match the Reserved setting
  *	 on the Advanced Settings page of the MPFS2 Utility.
  */
-#define MPFS_RESERVE_BLOCK              (64ul)
+
+#define MPFS_RESERVE_BLOCK              (5120ul)  //    sizeof(My_APP_Info_Struct)  // (64ul)
 
 /* MPFS File Handles
  *   Maximum number of simultaneously open MPFS2 files.

@@ -294,6 +294,7 @@ unsigned int CmdDefaultAck(CmdHead * cmd,unsigned int len)
  */
 unsigned int CmdWriteRegister(CmdHead * cmd,unsigned int len)
 {
+	unsigned int  base;
 	unsigned int  addr;
 	unsigned int  datlen;
 	CmdRegister * preg = (CmdRegister *)GET_CMD_DATA(cmd);
@@ -340,9 +341,27 @@ unsigned int CmdWriteRegister(CmdHead * cmd,unsigned int len)
 		RtcRamRead(0,preg,31);
 		cmd->cmd_len = 31;
 	}
+    base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+	if(addr >= base && addr < sizeof(My_APP_Info_Struct)) {
+		//可以写入内存
+		unsigned long i;
+		unsigned char * pbuf = &(preg->reg_base);
+	    for(i=0;i<datlen;i++) {
+		    XEEBeginWrite(addr+i);
+		    XEEWrite(pbuf[i]);
+		    XEEEndWrite();
+	    }
+		XEEBeginRead(addr);
+		for(i=0;i<datlen;i++) {
+			pbuf[i] = XEERead();
+		}
+		XEEEndRead();
+		cmd->cmd_option = CMD_ACK_OK;
+		cmd->cmd_len = sizeof(CmdRegister) - 1 + datlen;
+	}
 error:
     cmd->data_checksum = 0;
-	return sizeof(CmdHead) + cmd->cmd_len;
+	return sizeof(CmdHead) + sizeof(CmdRegister) - 1 + datlen;
 }
 /*************************************************************
  * 功能：读寄存器，实现通用接口
@@ -359,6 +378,7 @@ error:
  */
 unsigned int CmdReadRegister(CmdHead * cmd,unsigned int len)
 {
+	unsigned int  base;
 	unsigned int  addr;
 	unsigned int  datlen;
 	CmdRegister * preg = (CmdRegister *)GET_CMD_DATA(cmd);
@@ -412,9 +432,22 @@ unsigned int CmdReadRegister(CmdHead * cmd,unsigned int len)
 		cmd->cmd_len = 2;
 		Convert_T();
 	}
+    base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+	if(addr >= base && addr < sizeof(My_APP_Info_Struct)) {
+		//可以写入内存
+		unsigned long i;
+		unsigned char * pbuf = &(preg->reg_base);
+		XEEBeginRead(addr);
+		for(i=0;i<datlen;i++) {
+			pbuf[i] = XEERead();
+		}
+		XEEEndRead();
+		cmd->cmd_option = CMD_ACK_OK;
+		cmd->cmd_len = sizeof(CmdRegister) - 1 + datlen;
+	}
 error:
     cmd->data_checksum = 0;
-	return sizeof(CmdHead) + cmd->cmd_len;
+	return sizeof(CmdHead) + sizeof(CmdRegister) - 1 + datlen;
 }
 /*************************************************************
  * 功能：设置实时时钟
