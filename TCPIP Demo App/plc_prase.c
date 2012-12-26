@@ -116,8 +116,8 @@ void plc_rtc_tick_process(void)
 	//读时间进来
 	unsigned int TP_temp = ReadTemperatureXX_XC();
 	DS1302_VAL tval;
-	temp_reg[0] = TP_temp & 0xFF;
-	temp_reg[1] = TP_temp >> 8;
+	temp_reg[1] = TP_temp / 100;  //度
+	temp_reg[0] = TP_temp % 100;  //小数度
 	ReadRTC(&tval);
 	BCD2Hex(&tval,sizeof(tval));
 	//以下按照从小到大排序，分别为：秒，分，时，日，月，年，最后是星期
@@ -219,7 +219,7 @@ const unsigned char plc_test_flash[128] =
 {
 	0,
 	//PLC_BCMP, 30,    0x10,0,  0x01,0x00,
-	PLC_BZCP, 46,47, 0x10,1,  0x01,0x00,
+	//PLC_BZCP, 20,22, 0x10,0x08,  0x01,0x00,
 	PLC_END
 };
 
@@ -279,7 +279,7 @@ void plc_code_test_init(void)
 
 void read_next_plc_code(void)
 {
-#if 0
+#if 1
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	unsigned int size = sizeof(My_APP_Info_Struct) - base;
