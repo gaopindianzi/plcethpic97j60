@@ -212,10 +212,8 @@ FF
 const unsigned char plc_test_flash[128] =
 {
 	0,
-	PLC_LD, 0x00,0x00,
-	PLC_OUT,0x01,0x00,
-	//PLC_BZCP,0,30,  0x10,0,  0x01,0x00,
-	//PLC_BZCP,31,59, 0x10,0,  0x01,0x03,
+	//PLC_BCMP, 30,    0x10,0,  0x01,0x00,
+	PLC_BZCP, 46,47, 0x10,1,  0x01,0x00,
 	PLC_END
 };
 
@@ -836,7 +834,7 @@ void handle_plc_zrst(void)
 }
 /**********************************************
  * 比较指令
- * BCMP   B0   B1   M0
+ * BCMP   K   B   M0
  * 该指令为字节比较指令，将比较的结果<,=,>三种结果分别告知给M0，M1，M2。
  */
 void handle_plc_bcmp(void)
@@ -844,28 +842,24 @@ void handle_plc_bcmp(void)
 	typedef struct _plc_command
 	{
 		unsigned char cmd;
-		unsigned char dx_hi;
-		unsigned char dx_lo;
-		unsigned char dy_hi;
-		unsigned char dy_lo;
+		unsigned char kval;
+		unsigned char reg_hi;
+		unsigned char reg_lo;
 		unsigned char out_hi;
 		unsigned char out_lo;
 	} plc_command;
 	plc_command * plc = (plc_command *)plc_command_array;
-	unsigned int x = HSB_BYTES_TO_WORD(&plc->dx_hi);
-	unsigned int y = HSB_BYTES_TO_WORD(&plc->dy_hi);
-	unsigned int out = HSB_BYTES_TO_WORD(&plc->out_hi);
-	unsigned char bitval_x = get_byte_val(x);
-	unsigned char bitval_y = get_byte_val(y);
-	if(bitval_x < bitval_y) {
+	unsigned char reg = get_byte_val(HSB_BYTES_TO_WORD(&plc->reg_hi));
+	unsigned int  out = HSB_BYTES_TO_WORD(&plc->out_hi);
+	if(plc->kval < reg) {
 		set_bitval(out,1);
 		set_bitval(out+1,0);
 		set_bitval(out+2,0);
-	} else if(bitval_x == bitval_y) {
+	} else if(plc->kval == reg) {
 		set_bitval(out,0);
 		set_bitval(out+1,1);
 		set_bitval(out+2,0);
-	} else {
+	} else if(plc->kval > reg) {
 		set_bitval(out,0);
 		set_bitval(out+1,0);
 		set_bitval(out+2,1);
@@ -875,7 +869,7 @@ void handle_plc_bcmp(void)
 /**********************************************
  * 字节区间比较指令
  * BZCP   K1  K2  B  M0
- * 该指令为字节比较指令，将比较的结果<,=,>三种结果分别告知给M0，M1，M2。
+ * 该指令为字节比较指令，将比较的结果<,中间,>三种结果分别告知给M0，M1，M2。
  */
 void handle_plc_bzcp(void)
 {
