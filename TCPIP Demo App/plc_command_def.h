@@ -36,8 +36,8 @@
 #define    PLC_OUTC    22   //输出都计数器
 //功能指令
 #define    PLC_ZRST    23
-#define    PLC_CMP     24
-#define    PLC_ZCP     25
+#define    PLC_BCMP    24
+#define    PLC_BZCP    25
 #define    PLC_MOV     26
 #define    PLC_CML     27
 #define    PLC_BMOV    28

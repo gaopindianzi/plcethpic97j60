@@ -71,6 +71,10 @@ unsigned char output_new[BITS_TO_BS(IO_OUTPUT_COUNT)];
 //辅助继电器
 unsigned char auxi_relays[BITS_TO_BS(AUXI_RELAY_COUNT)];
 unsigned char auxi_relays_last[BITS_TO_BS(AUXI_RELAY_COUNT)];
+//字节变量，通用变量
+unsigned char general_reg[REG_COUNT];   //普通变量
+//RTC实时时间影像寄存器，没秒更新一次自动变化
+unsigned char rtc_reg[REG_RTC_COUNT];
 //定时器定义，自动对内部的时钟脉冲进行计数
 volatile unsigned int  time100ms_come_flag;
 volatile unsigned int  time1s_come_flag;
@@ -103,6 +107,23 @@ void sys_time_tick_init(void)
 	last_tick = TickGet();
 	last_tick1s = TickGet();
 }
+
+void plc_rtc_tick_process(void)
+{
+	//读时间进来
+	DS1302_VAL tval;
+	ReadRTC(&tval);
+	BCD2Hex(&tval,sizeof(tval));
+	//以下按照从小到大排序，分别为：秒，分，时，日，月，年，最后是星期
+	rtc_reg[5] = tval.YEAR;
+	rtc_reg[4] = tval.MONTH;
+	rtc_reg[3] = tval.DATE;
+	rtc_reg[2] = tval.HR;
+	rtc_reg[1] = tval.MIN;
+	rtc_reg[0] = tval.SEC;
+	rtc_reg[6] = tval.DAY;
+}
+
 void plc_timing_tick_process(void)
 {
 	TICK curr = TickGet();
@@ -114,9 +135,12 @@ void plc_timing_tick_process(void)
 	if((curr - last_tick1s) >= TICK_SECOND) {
 		time1s_come_flag++;
 		last_tick1s = curr;
+		plc_rtc_tick_process();
 		//if(THIS_INFO)putrsUART((ROM char*)"time tick 1s");
 	}
 }
+
+
 
 
 /*********************************************
@@ -142,7 +166,9 @@ void PlcInit(void)
 	memset(&tim100ms_arrys,0,sizeof(tim100ms_arrys));
 	memset(&tim1s_arrys,0,sizeof(tim1s_arrys));
     memset(&counter_arrys,0,sizeof(counter_arrys));
+	memset(general_reg,0,sizeof(general_reg));
 	sys_time_tick_init();
+	plc_rtc_tick_process();
 }
 
 
@@ -186,6 +212,10 @@ FF
 const unsigned char plc_test_flash[128] =
 {
 	0,
+	PLC_LD, 0x00,0x00,
+	PLC_OUT,0x01,0x00,
+	//PLC_BZCP,0,30,  0x10,0,  0x01,0x00,
+	//PLC_BZCP,31,59, 0x10,0,  0x01,0x03,
 	PLC_END
 };
 
@@ -245,7 +275,7 @@ void plc_code_test_init(void)
 
 void read_next_plc_code(void)
 {
-#if 1
+#if 0
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	unsigned int size = sizeof(My_APP_Info_Struct) - base;
@@ -277,7 +307,6 @@ void handle_plc_command_error(void)
 unsigned char get_bitval(unsigned int index)
 {
 	unsigned char bitval = 0;
-	unsigned char B,b;
 	if(index >= IO_INPUT_BASE && index < (IO_INPUT_BASE+IO_INPUT_COUNT)) {
 		index -= IO_INPUT_BASE;
         bitval = BIT_IS_SET(inputs_new,index);
@@ -313,7 +342,6 @@ unsigned char get_bitval(unsigned int index)
 static unsigned char get_last_bitval(unsigned int index)
 {
 	unsigned char bitval = 0;
-	unsigned char B,b;
 	if(index >= IO_INPUT_BASE && index < (IO_INPUT_BASE+IO_INPUT_COUNT)) {
 		index -= IO_INPUT_BASE;
         bitval = BIT_IS_SET(inputs_last,index);
@@ -374,6 +402,32 @@ void set_bitval(unsigned int index,unsigned char bitval)
 		}
 	} else {
 		//handle_plc_command_error();
+	}
+}
+
+unsigned char get_byte_val(unsigned int index)
+{
+	unsigned char reg;
+	if(index >= REG_BASE && index < (REG_BASE+REG_COUNT)) {
+		//普通字节变量
+		reg = general_reg[index-REG_BASE];
+	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
+		//读取RTC时间,地址分别是年月日，时分秒，星期
+		reg = rtc_reg[index-REG_RTC_BASE];
+	} else {
+		reg = 0;
+	}
+	return reg;
+}
+
+void set_byte_val(unsigned int index,unsigned char val)
+{
+	if(index >= REG_BASE && index < (REG_BASE+REG_COUNT)) {
+		//普通字节变量
+		general_reg[index-REG_BASE] = val;
+	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
+		//读取RTC时间,地址分别是年月日，时分秒，星期
+		//rtc_reg[index-REG_RTC_BASE] = val;暂时不能修改时间
 	}
 }
 
@@ -758,6 +812,105 @@ void handle_plc_out_c(void)
 	plc_command_index += 5;
 }
 
+/**********************************************
+ * 区间复位指令，比如把Y0 - Y7 复位
+ */
+void handle_plc_zrst(void)
+{
+	typedef struct _zrst_command
+	{
+		unsigned char cmd;
+		unsigned char start_hi;
+		unsigned char start_lo;
+		unsigned char end_hi;
+		unsigned char end_lo;
+	} zrst_command;
+	zrst_command * plc = (zrst_command *)plc_command_array;
+	unsigned int start = HSB_BYTES_TO_WORD(&plc->start_hi);
+	unsigned int end = HSB_BYTES_TO_WORD(&plc->end_hi);
+	unsigned int i;
+	for(i=start;i<end;i++) {
+		set_bitval(i,0);
+	}
+	plc_command_index += sizeof(zrst_command);
+}
+/**********************************************
+ * 比较指令
+ * BCMP   B0   B1   M0
+ * 该指令为字节比较指令，将比较的结果<,=,>三种结果分别告知给M0，M1，M2。
+ */
+void handle_plc_bcmp(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char dx_hi;
+		unsigned char dx_lo;
+		unsigned char dy_hi;
+		unsigned char dy_lo;
+		unsigned char out_hi;
+		unsigned char out_lo;
+	} plc_command;
+	plc_command * plc = (plc_command *)plc_command_array;
+	unsigned int x = HSB_BYTES_TO_WORD(&plc->dx_hi);
+	unsigned int y = HSB_BYTES_TO_WORD(&plc->dy_hi);
+	unsigned int out = HSB_BYTES_TO_WORD(&plc->out_hi);
+	unsigned char bitval_x = get_byte_val(x);
+	unsigned char bitval_y = get_byte_val(y);
+	if(bitval_x < bitval_y) {
+		set_bitval(out,1);
+		set_bitval(out+1,0);
+		set_bitval(out+2,0);
+	} else if(bitval_x == bitval_y) {
+		set_bitval(out,0);
+		set_bitval(out+1,1);
+		set_bitval(out+2,0);
+	} else {
+		set_bitval(out,0);
+		set_bitval(out+1,0);
+		set_bitval(out+2,1);
+	}
+	plc_command_index += sizeof(plc_command);
+}
+/**********************************************
+ * 字节区间比较指令
+ * BZCP   K1  K2  B  M0
+ * 该指令为字节比较指令，将比较的结果<,=,>三种结果分别告知给M0，M1，M2。
+ */
+void handle_plc_bzcp(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char klow;
+		unsigned char khig;
+		unsigned char reg_hi;
+		unsigned char reg_lo;
+		unsigned char out_hi;
+		unsigned char out_lo;
+	} plc_command;
+	plc_command * plc = (plc_command *)plc_command_array;
+	unsigned char reg = get_byte_val(HSB_BYTES_TO_WORD(&plc->reg_hi));
+	unsigned int  out = HSB_BYTES_TO_WORD(&plc->out_hi);
+	if(reg < plc->klow) {
+		set_bitval(out,1);
+		set_bitval(out+1,0);
+		set_bitval(out+2,0);
+	} else if(reg >= plc->klow && reg <= plc->khig) {
+		set_bitval(out,0);
+		set_bitval(out+1,1);
+		set_bitval(out+2,0);
+	} else if(reg > plc->khig) {
+		set_bitval(out,0);
+		set_bitval(out+1,0);
+		set_bitval(out+2,1);
+	}
+	plc_command_index += sizeof(plc_command);
+}
+
+
+
+
 
 /**********************************************
  * 通信位指令处理程序
@@ -947,9 +1100,18 @@ void PlcProcess(void)
 	case PLC_OUTC:
 		handle_plc_out_c();
 		break;
+	case PLC_ZRST:
+		handle_plc_zrst();
+		break;
     case PLC_NETRB:
         handle_plc_net_rb(); 
         break;
+	case PLC_BCMP:
+		handle_plc_bcmp();
+		break;
+	case PLC_BZCP:
+		handle_plc_bzcp();
+		break;
     case PLC_NETWB:
     case PLC_NETRW:
     case PLC_NETWW:

@@ -19,6 +19,12 @@
 
 #define  COUNTER_EVENT_BASE      4096  //0x10,0x00
 #define  COUNTER_EVENT_COUNT                24
+//字节变量
+#define  REG_BASE                0
+#define  REG_COUNT                          128
+//时间地址
+#define  REG_RTC_BASE            4096   //0x10,0x00
+#define  REG_RTC_COUNT                      7    //年月日，时分秒，星期
 
 
 extern void PlcInit(void);
