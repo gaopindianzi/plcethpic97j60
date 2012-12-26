@@ -56,6 +56,7 @@
 #include "TCPIP Stack/TCPIP.h"
 #include "DS18B20.h"
 #include "hal_io_interface.h"
+#include "plc_prase.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -193,49 +194,50 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay1");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(0,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+0,reg);
+			//io_out_set_bits(0,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay2");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(1,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+1,reg);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay3");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(2,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+2,reg);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay4");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(3,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+3,reg);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay5");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(4,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+4,reg);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay6");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(5,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+5,reg);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay7");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(6,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+6,reg);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay8");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			io_out_set_bits(7,&reg,1);
+			set_bitval(IO_OUTPUT_BASE+7,reg);
 		}
 	}
 	
@@ -1375,11 +1377,11 @@ void HTTPPrint_currenttemp(void)
 	char chr[8];
 	unsigned int t;
 	unsigned int tmp = ReadTemperatureXX_XC();
-	t = tmp / 10; //得到度数
+	t = tmp / 100; //得到度数
 	uitoa(t,chr);
 	TCPPutString(sktHTTP,chr);
 	TCPPut(sktHTTP, '.');
-	t = tmp % 10; //得到小数点
+	t = tmp % 100; //得到小数点
 	uitoa(t,chr);
 	TCPPutString(sktHTTP,chr);
 }
@@ -1841,31 +1843,32 @@ void HTTPPrint_status_fail(void)
 void HTTPPrint_RelaySelected(WORD num, WORD state)
 {
 	// Determine which LED to check
+
 	switch(num)
 	{
 		case 1:
-			num = (io_out[0] & (1<<0))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+0); //    (io_out[0] & (1<<0))?1:0;
 			break;
 		case 2:
-			num = (io_out[0] & (1<<1))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+1); 
 			break;
 		case 3:
-			num = (io_out[0] & (1<<2))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+2); 
 			break;
 		case 4:
-			num = (io_out[0] & (1<<3))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+3); 
 			break;
 		case 5:
-			num = (io_out[0] & (1<<4))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+4); 
 			break;
 		case 6:
-			num = (io_out[0] & (1<<5))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+5); 
 			break;
 		case 7:
-			num = (io_out[0] & (1<<6))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+6); 
 			break;
 		case 8:
-			num = (io_out[0] & (1<<7))?1:0;
+			num = get_bitval(IO_OUTPUT_BASE+7); 
 			break;
 		default:
 			num = 0;

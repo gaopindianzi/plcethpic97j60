@@ -23,8 +23,10 @@
 #define  REG_BASE                0
 #define  REG_COUNT                          128
 //时间地址
-#define  REG_RTC_BASE            4096   //0x10,0x00
+#define  REG_RTC_BASE            4096
 #define  REG_RTC_COUNT                      7    //年月日，时分秒，星期
+#define  REG_TEMP_BASE           4103
+#define  REG_TEMP_COUNT                     2    //温度高地位
 
 //http://192.168.1.223/mpfsupload
 

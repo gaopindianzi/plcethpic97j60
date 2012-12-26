@@ -15,6 +15,7 @@
 #include "plc_prase.h"
 #include "compiler.h"
 #include "DS1302.h"
+#include "DS18B20.h"
 #include "debug.h"
 
 #define THIS_INFO  0
@@ -75,6 +76,8 @@ unsigned char auxi_relays_last[BITS_TO_BS(AUXI_RELAY_COUNT)];
 unsigned char general_reg[REG_COUNT];   //普通变量
 //RTC实时时间影像寄存器，没秒更新一次自动变化
 unsigned char rtc_reg[REG_RTC_COUNT];
+//温度寄存器，1秒更新一次
+unsigned char temp_reg[REG_TEMP_COUNT];
 //定时器定义，自动对内部的时钟脉冲进行计数
 volatile unsigned int  time100ms_come_flag;
 volatile unsigned int  time1s_come_flag;
@@ -111,7 +114,10 @@ void sys_time_tick_init(void)
 void plc_rtc_tick_process(void)
 {
 	//读时间进来
+	unsigned int TP_temp = ReadTemperatureXX_XC();
 	DS1302_VAL tval;
+	temp_reg[0] = TP_temp & 0xFF;
+	temp_reg[1] = TP_temp >> 8;
 	ReadRTC(&tval);
 	BCD2Hex(&tval,sizeof(tval));
 	//以下按照从小到大排序，分别为：秒，分，时，日，月，年，最后是星期
@@ -412,6 +418,8 @@ unsigned char get_byte_val(unsigned int index)
 	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
 		//读取RTC时间,地址分别是年月日，时分秒，星期
 		reg = rtc_reg[index-REG_RTC_BASE];
+	} else if(index >=REG_TEMP_BASE && index <(REG_TEMP_BASE+REG_TEMP_COUNT)) {
+		reg = temp_reg[index-REG_TEMP_BASE];
 	} else {
 		reg = 0;
 	}
@@ -426,6 +434,7 @@ void set_byte_val(unsigned int index,unsigned char val)
 	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
 		//读取RTC时间,地址分别是年月日，时分秒，星期
 		//rtc_reg[index-REG_RTC_BASE] = val;暂时不能修改时间
+	} else if(index >=REG_TEMP_BASE && index <(REG_TEMP_BASE+REG_TEMP_COUNT)) {
 	}
 }
 

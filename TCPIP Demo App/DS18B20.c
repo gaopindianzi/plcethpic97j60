@@ -187,7 +187,7 @@ unsigned int ReadTemperatureXX_XC(void)
 	unsigned int TP_temp;
 	Convert_T();
 	TP_temp = Read_Temperature();
-	TP_temp *= 10;
+	TP_temp *= 100;
 	TP_temp /= 16;
 	return TP_temp;
 }
