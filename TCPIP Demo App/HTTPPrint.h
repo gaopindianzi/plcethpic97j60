@@ -20,15 +20,11 @@ extern BYTE curHTTPID;
 
 void HTTPPrint(DWORD callbackID);
 void HTTPPrint_hellomsg(void);
-void HTTPPrint_cookiename(void);
-void HTTPPrint_(void);
 void HTTPPrint_builddate(void);
 void HTTPPrint_led(WORD);
-void HTTPPrint_lcdtext(void);
 void HTTPPrint_version(void);
 void HTTPPrint_btn(WORD);
 void HTTPPrint_pot(void);
-void HTTPPrint_uploadedmd5(void);
 void HTTPPrint_status_ok(void);
 void HTTPPrint_ddns_status(void);
 void HTTPPrint_ddns_status_msg(void);
@@ -63,12 +59,6 @@ void HTTPPrint(DWORD callbackID)
         case 0x00000002:
 			HTTPIncFile((ROM BYTE*)"footer.inc");
 			break;
-        case 0x00000003:
-			HTTPPrint_cookiename();
-			break;
-        case 0x00000004:
-			HTTPPrint_();
-			break;
         case 0x00000005:
 			HTTPPrint_builddate();
 			break;
@@ -93,9 +83,6 @@ void HTTPPrint(DWORD callbackID)
         case 0x0000000c:
 			HTTPPrint_led(1);
 			break;
-        case 0x0000000d:
-			HTTPPrint_lcdtext();
-			break;
         case 0x00000016:
 			HTTPPrint_version();
 			break;
@@ -116,9 +103,6 @@ void HTTPPrint(DWORD callbackID)
 			break;
         case 0x0000001c:
 			HTTPPrint_pot();
-			break;
-        case 0x0000001d:
-			HTTPPrint_uploadedmd5();
 			break;
         case 0x0000001e:
 			HTTPPrint_status_ok();

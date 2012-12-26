@@ -26,6 +26,7 @@
 #define  REG_RTC_BASE            4096   //0x10,0x00
 #define  REG_RTC_COUNT                      7    //年月日，时分秒，星期
 
+//http://192.168.1.223/mpfsupload
 
 extern void PlcInit(void);
 extern void PlcProcess(void);

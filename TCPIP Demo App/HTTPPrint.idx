@@ -1,8 +1,8 @@
 +inc:header.inc
 +hellomsg
 +inc:footer.inc
-+cookiename
-+
+cookiename
+
 +builddate
 +led(7)
 +led(6)
@@ -11,7 +11,7 @@
 +led(3)
 +led(2)
 +led(1)
-+lcdtext
+lcdtext
 ledSelected(4,TRUE)
 ledSelected(4,FALSE)
 ledSelected(3,TRUE)
@@ -27,7 +27,7 @@ ledSelected(1,FALSE)
 +btn(2)
 +btn(3)
 +pot
-+uploadedmd5
+uploadedmd5
 +status_ok
 +ddns_status
 +ddns_status_msg
