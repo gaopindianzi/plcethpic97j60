@@ -573,7 +573,90 @@ unsigned int CmdGetIoOutPownDownHold(CmdHead * cmd,unsigned int len)
     cmd->data_checksum = 0;
 	return sizeof(CmdHead) + cmd->cmd_len;
 }
+#if 0
+/*************************************************************
+ * 功能：PLC程序读
+ */
+unsigned int CmdPlcRead(CmdHead * cmd,unsigned int len)
+{
 
+	typedef struct _plc_rw
+	{
+		unsigned char cmd;
+		unsigned char start_addr_hi;
+		unsigned char start_addr_lo;
+		unsigned char data_len_hi;
+		unsigned char data_len_lo;
+		//后面接着是数据
+		//unsigned char data_base;
+	} plc_rw;
+	if(len >= sizeof(plc_rw)) {
+		plc_rw * pw = (plc_rw *)cmd;
+		plc_rw * pack = (plc_rw *)pw;
+		unsigned char *pbuf = ((unsigned char *)pack) + sizeof(plc_rw);
+		unsigned int  base = HSB_BYTES_TO_WORD(&pw->start_addr_hi);
+		len = HSB_BYTES_TO_WORD(&pw->data_len_hi);
+		if(len > RELAY_CMD_MAX_PACKET_LEN - sizeof(plc_rw)) {
+			len = RELAY_CMD_MAX_PACKET_LEN - sizeof(plc_rw);
+		}
+		if(len > 0) {
+		    len = read_plc_programer(base,pbuf,len);
+			pack->data_len_hi = len >> 8;
+			pack->data_len_lo = len & 0xFF;
+		} else {
+			pack->data_len_hi = 0;
+			pack->data_len_lo = 0;
+		}
+	    //把数据返回
+	    return sizeof(plc_rw)+len;
+	} else {
+		//无效的指令
+		return 0;
+	}
+
+}
+#endif
+#if 0
+/*************************************************************
+ * 功能：PLC程序写
+ */
+unsigned int CmdPlcWrite(CmdHead * cmd,unsigned int len)
+{
+	typedef struct _plc_rw
+	{
+		unsigned char cmd;
+		unsigned char start_addr_hi;
+		unsigned char start_addr_lo;
+		unsigned char data_len_hi;
+		unsigned char data_len_lo;
+		//后面接着是数据
+		//unsigned char data_base;
+	} plc_rw;
+	if(len >= sizeof(plc_rw)) {
+		plc_rw * pw = (plc_rw *)cmd;
+		plc_rw * pack = (plc_rw *)pw;
+		unsigned char *pbuf = ((unsigned char *)pack) + sizeof(plc_rw);
+		unsigned int  base = HSB_BYTES_TO_WORD(&pw->start_addr_hi);
+		len = HSB_BYTES_TO_WORD(&pw->data_len_hi);
+		if(len > RELAY_CMD_MAX_PACKET_LEN - sizeof(plc_rw)) {
+			len = RELAY_CMD_MAX_PACKET_LEN - sizeof(plc_rw);
+		}
+		if(len > 0) {
+		    len = write_plc_programer(base,pbuf,len);
+			pack->data_len_hi = len >> 8;
+			pack->data_len_lo = len & 0xFF;
+		} else {
+			pack->data_len_hi = 0;
+			pack->data_len_lo = 0;
+		}
+	    //把数据返回
+	    return sizeof(plc_rw)+len;
+	} else {
+		//无效的指令
+		return 0;
+	}
+}
+#endif
 /*************************************************************
  * 功能：命令解析函数
  *       解析和TCP包,返回一定长度的应答包，然后返回和发送给客户端
@@ -635,6 +718,9 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
 	case CMD_SET_SYSTEM_RESET:   return CmdDefaultAck(rcmd,len);
 	case CMD_SET_IO_OUT_POWERDOWN_HOLD: return CmdSetIoOutPownDownHold(rcmd,len);
 	case CMD_GET_IO_OUT_POWERDOWN_HOLD: return CmdGetIoOutPownDownHold(rcmd,len);
+	case CMD_PLC_READ:
+	case CMD_PLC_WRITE:
+		return 0;
 	default: 
 		return CmdDefaultAck(rcmd,len);
 	}

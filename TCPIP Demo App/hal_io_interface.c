@@ -262,7 +262,7 @@ unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits,unsign
 }
 
 
-unsigned char read_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len)
+unsigned int read_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len)
 {
 	unsigned int base = index + GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	XEEBeginRead(base);
@@ -270,4 +270,17 @@ unsigned char read_plc_programer(unsigned int index,unsigned char * buffer,unsig
 		*buffer++ = XEERead();
 	}
 	XEEEndRead();
+	return len;
 }
+
+unsigned int write_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len)
+{
+	unsigned int base = index + GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,plc_programer);
+	XEEBeginWrite(base);
+	while(len--) {
+		XEEWrite(*buffer++);
+	}
+	XEEEndWrite();
+	return len;
+}
+

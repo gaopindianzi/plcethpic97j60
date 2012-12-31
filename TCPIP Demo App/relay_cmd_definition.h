@@ -57,7 +57,8 @@ typedef   DWORD  uint32_t;
 #define   CMD_READ_REGISTER              80  //0x50
 #define   CMD_WRITE_REGISTER             81  //0x51
 
-
+#define   CMD_PLC_READ                   82  //0x52
+#define   CMD_PLC_WRITE                  83  //0x53
 
 #if 0
 typedef struct _CmdHead

@@ -19,8 +19,8 @@ extern unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits
 extern void Io_Out_PowerInit(void);
 extern void set_io_out_power_down_hold(unsigned char hold_on);
 extern unsigned char get_io_out_power_down_hold(void);
-extern unsigned char read_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len);
-
+extern unsigned int read_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len);
+extern unsigned int write_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len);
 
 #define  GET_MEMBER_BASE_OF_STRUCT(StructType,MemberName)    (&(((StructType *)0)->MemberName) - ((StructType *)0))
 
@@ -28,9 +28,10 @@ typedef struct _My_APP_Info_Struct
 {
 	APP_CONFIG     oapp;
 	unsigned char  io_out_hold;
-	unsigned char  plc_programer;
+	unsigned char  plc_flash[1024*4];
 	unsigned char  plc_programer2[1024*4-1];
 } My_APP_Info_Struct; 
+
 
 
 #endif

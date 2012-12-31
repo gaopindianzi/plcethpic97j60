@@ -1,2 +1,4 @@
 Advisory[1207]   : some of the command line options you are using are now obsolete
 Advisory[1208]   : use --help option or refer to the user manual for option details
+Error[500]   : undefined symbols:
+	_load_plc_form_eeprom (E:\Project\Ethernet\pic18f97j60_eth2uart\TCPIP Demo App\tcp_cmd_prase_handle.obj)?_load_plc_form_eeprom (E:\Project\Ethernet\pic18f97j60_eth2uart\TCPIP Demo App\tcp_cmd_prase_handle.obj)
