@@ -73,6 +73,26 @@ unsigned char get_io_out_power_down_hold(void)
  *     输出一个整形，代表输出位的数量
  */
 
+unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount)
+{
+	unsigned int i;
+	//参数必须符合条件
+	if(startbits >= REAL_IO_OUT_NUM || bitcount == 0) {
+		return 0;
+	}
+	//进一步判断是否符合条件
+	if((REAL_IO_OUT_NUM - startbits) < bitcount) {
+		bitcount = REAL_IO_OUT_NUM - startbits;
+	}
+	//开始设置
+	for(i=0;i<bitcount;i++) {
+	   unsigned char ch = get_bitval(AUXI_RELAY_BASE+startbits+i);
+	   set_bitval(AUXI_RELAY_BASE+startbits+i,!ch);
+	}
+	return bitcount;
+}
+
+
 /*************************************************************
  * 功能：设置某些输出位
  * 输入：
@@ -99,7 +119,7 @@ unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsig
 	//printf("io_out_set_bits startbits = %d , bit count = %d\r\n",startbits,bitcount);
 	for(i=0;i<bitcount;i++) {
 	   unsigned char ch = BIT_IS_SET(iobits,i);
-	   set_bitval(AUXI_RELAY_BASE+i,ch);
+	   set_bitval(AUXI_RELAY_BASE+startbits+i,ch);
 	}
 	//返回
 	return bitcount;

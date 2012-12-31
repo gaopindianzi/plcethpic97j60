@@ -194,50 +194,57 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay1");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+0,reg);
-			//io_out_set_bits(0,&reg,1);
+			//set_bitval(IO_OUTPUT_BASE+0,reg);
+			io_out_set_bits(0,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay2");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+1,reg);
+			//set_bitval(IO_OUTPUT_BASE+1,reg);
+			io_out_set_bits(1,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay3");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+2,reg);
+			//set_bitval(IO_OUTPUT_BASE+2,reg);
+			io_out_set_bits(2,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay4");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+3,reg);
+			//set_bitval(IO_OUTPUT_BASE+3,reg);
+			io_out_set_bits(3,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay5");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+4,reg);
+			//set_bitval(IO_OUTPUT_BASE+4,reg);
+			io_out_set_bits(4,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay6");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+5,reg);
+			//set_bitval(IO_OUTPUT_BASE+5,reg);
+			io_out_set_bits(5,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay7");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+6,reg);
+			//set_bitval(IO_OUTPUT_BASE+6,reg);
+			io_out_set_bits(6,&reg,1);
 		}
 
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"relay8");
 		if(ptr) {
 			reg = (*ptr == '1')?0x01:0x00;
-			set_bitval(IO_OUTPUT_BASE+7,reg);
+			//set_bitval(IO_OUTPUT_BASE+7,reg);
+			io_out_set_bits(7,&reg,1);
 		}
 	}
 	
@@ -258,7 +265,7 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 	{
 		// Determine which LED to toggle
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led");
-		
+#if 0		
 		// Toggle the specified LED
 		switch(*ptr) {
 			case '1':
@@ -283,6 +290,7 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 				RELAY_OUT_6 ^= 1;
 				break;
 		}
+#endif
 		
 	}
 	
@@ -1843,32 +1851,33 @@ void HTTPPrint_status_fail(void)
 void HTTPPrint_RelaySelected(WORD num, WORD state)
 {
 	// Determine which LED to check
-
+	unsigned char buffer[2];
+	io_out_get_bits(0,buffer,16);
 	switch(num)
 	{
 		case 1:
-			num = get_bitval(IO_OUTPUT_BASE+0); //    (io_out[0] & (1<<0))?1:0;
+			num = (buffer[0] & (1<<0))?1:0;
 			break;
 		case 2:
-			num = get_bitval(IO_OUTPUT_BASE+1); 
+			num = (buffer[0] & (1<<1))?1:0;
 			break;
 		case 3:
-			num = get_bitval(IO_OUTPUT_BASE+2); 
+			num = (buffer[0] & (1<<2))?1:0;
 			break;
 		case 4:
-			num = get_bitval(IO_OUTPUT_BASE+3); 
+			num = (buffer[0] & (1<<3))?1:0;
 			break;
 		case 5:
-			num = get_bitval(IO_OUTPUT_BASE+4); 
+			num = (buffer[0] & (1<<4))?1:0;
 			break;
 		case 6:
-			num = get_bitval(IO_OUTPUT_BASE+5); 
+			num = (buffer[0] & (1<<5))?1:0;
 			break;
 		case 7:
-			num = get_bitval(IO_OUTPUT_BASE+6); 
+			num = (buffer[0] & (1<<6))?1:0;
 			break;
 		case 8:
-			num = get_bitval(IO_OUTPUT_BASE+7); 
+			num = (buffer[0] & (1<<7))?1:0;
 			break;
 		default:
 			num = 0;
