@@ -168,8 +168,6 @@ void PlcInit(void)
 
 	memset(output_new,0,sizeof(output_new));
 	memset(output_last,0,sizeof(output_last));
-    io_out_get_bits(0,output_last,IO_OUTPUT_COUNT);
-
 	memset(speicial_relays,0,sizeof(speicial_relays));
 	memset(speicial_relays_last,0,sizeof(speicial_relays_last));
 	{ //复位状态简单的初始化为1，即表示上电标志（此位人工清零）
@@ -232,7 +230,7 @@ FF
 const unsigned char plc_test_flash[512] =
 {
 	0,
-#if 1  //客户指定1小时关的
+#if 0  //客户指定1小时关的
 	PLC_LDP, 0x00,0x00,
 	PLC_SET, 0x02,50,
 	PLC_SET, 0x02,0x00,
@@ -297,9 +295,9 @@ const unsigned char plc_test_flash[512] =
 	PLC_RST, 0x02,0x08,
 
 	PLC_LD,  0x02,50,
-	PLC_OUTT,0x0C,0x00,0x0E,0x10,
+	PLC_OUTT,0x0C,0x00,0,10,
 	PLC_LD,  0x02,51,
-	PLC_OUTT,0x0C,0x01,0x0E,0x10,
+	PLC_OUTT,0x0C,0x01,0,10,
 	PLC_LD,  0x02,52,
 	PLC_OUTT,0x0C,0x02,0x0E,0x10,  //最后两位是时间
 	PLC_LD,  0x02,53,
@@ -356,8 +354,33 @@ const unsigned char plc_test_flash[512] =
 #endif
 
 
+#if 1  //简单测试
+	PLC_LDP, 0x00,0x00,
+	PLC_SEI, 0x02,0x00,
+	PLC_LDP, 0x00,0x01,
+	PLC_SEI, 0x02,0x01,
+	PLC_LDP, 0x00,0x02,
+	PLC_SEI, 0x02,0x02,
+	PLC_LDP, 0x00,0x03,
+	PLC_SEI, 0x02,0x03,
 
-
+	PLC_LD,  0x02,0x00,
+	PLC_OUT, 0x01,0x00,
+	PLC_LD,  0x02,0x01,
+	PLC_OUT, 0x01,0x01,
+	PLC_LD,  0x02,0x02,
+	PLC_OUT, 0x01,0x02,
+	PLC_LD,  0x02,0x03,
+	PLC_OUT, 0x01,0x03,
+	PLC_LD,  0x02,0x04,
+	PLC_OUT, 0x01,0x04,
+	PLC_LD,  0x02,0x05,
+	PLC_OUT, 0x01,0x05,
+	PLC_LD,  0x02,0x06,
+	PLC_OUT, 0x01,0x06,
+	PLC_LD,  0x02,0x07,
+	PLC_OUT, 0x01,0x07,
+#endif
 	PLC_END
 };
 
@@ -1504,7 +1527,7 @@ void PlcProcess(void)
 	goto next_plc_command;
  plc_command_finished:
 	//输出处理，把运算结果输出到继电器中
-	io_out_set_bits(0,output_new,IO_OUTPUT_COUNT);
+	phy_io_out_set_bits(0,output_new,IO_OUTPUT_COUNT);
 	memcpy(output_last,output_new,sizeof(output_new));
 	//后续处理
 	memcpy(inputs_last,inputs_new,sizeof(inputs_new));

@@ -12,8 +12,9 @@ extern const unsigned char  code_msk[8];
 
 
 
-extern unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
+//extern unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
+extern unsigned int phy_io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern unsigned int io_out_get_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount);
 extern void Io_Out_PowerInit(void);
@@ -28,7 +29,7 @@ typedef struct _My_APP_Info_Struct
 {
 	APP_CONFIG     oapp;
 	unsigned char  io_out_hold;
-	unsigned char  plc_flash[1024*4];
+	unsigned char  plc_programer;
 	unsigned char  plc_programer2[1024*4-1];
 } My_APP_Info_Struct; 
 

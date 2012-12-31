@@ -3,7 +3,8 @@
 #include "MainDemo.h"
 #include "DS1302.h"
 #include "hal_io_interface.h"
-
+#include "plc_prase.h"
+#include "compiler.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -72,10 +73,20 @@ unsigned char get_io_out_power_down_hold(void)
  *     输出一个整形，代表输出位的数量
  */
 
-unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount)
+/*************************************************************
+ * 功能：设置某些输出位
+ * 输入：
+ *     startbits  :  起始位
+ *     iobits     :  位变量数组
+ *     bitcount   :  位的数量
+ * 输出：    
+ * 返回值：
+ *     输出一个整形，代表输出位的数量
+ */
+unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount)
 {
-	unsigned int i,index;
-	unsigned char Bb,Bi;
+	unsigned int i;
+	//_ioctl(_fileno(sys_varient.iofile), GET_OUT_NUM, &tmp);
 	//参数必须符合条件
 	if(startbits >= REAL_IO_OUT_NUM || bitcount == 0) {
 		return 0;
@@ -85,26 +96,12 @@ unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,u
 		bitcount = REAL_IO_OUT_NUM - startbits;
 	}
 	//开始设置
-	index = 0;
-	for(i=startbits;i<startbits+bitcount;i++) {
-	    Bb = index / 8;
-	    Bi = index % 8;
-		if(iobits[Bb]&code_msk[Bi]) {
-			io_out[i/8] ^= code_msk[i%8];
-		}
-		index++;
+	//printf("io_out_set_bits startbits = %d , bit count = %d\r\n",startbits,bitcount);
+	for(i=0;i<bitcount;i++) {
+	   unsigned char ch = BIT_IS_SET(iobits,i);
+	   set_bitval(AUXI_RELAY_BASE+i,ch);
 	}
-	//设置IO口
-	RELAY_OUT_0 = (io_out[0]&0x01)?0:1;
-	RELAY_OUT_1 = (io_out[0]&0x02)?0:1;
-	RELAY_OUT_2 = (io_out[0]&0x04)?0:1;
-	RELAY_OUT_3 = (io_out[0]&0x08)?0:1;
-	RELAY_OUT_4 = (io_out[0]&0x10)?0:1;
-	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
-	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
 	//返回
-	//RtcRamWrite(0,io_out,sizeof(io_out));
-	//
 	return bitcount;
 }
 
@@ -118,7 +115,7 @@ unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,u
  * 返回值：
  *     输出一个整形，代表输出位的数量
  */
-unsigned int io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount)
+unsigned int phy_io_out_set_bits(unsigned int startbits,unsigned char * iobits,unsigned int bitcount)
 {
 	unsigned int i,index;
 	unsigned char Bb,Bi;
@@ -190,17 +187,9 @@ unsigned int io_out_get_bits(unsigned int startbits,unsigned char * iobits,unsig
 	}
 	//printf("io_out_get_bits startbits = %d , bit count = %d\r\n",startbits,bitcount);
 	//开始设置
-	index = 0;
-	
-	for(i=startbits;i<startbits+bitcount;i++) {
-	    Bb = index / 8;
-	    Bi = index % 8;
-		if(io_out[i/8]&code_msk[i%8]) {
-			iobits[Bb] |=  code_msk[Bi];
-		} else {
-			iobits[Bb] &= ~code_msk[Bi];
-		}
-		index++;
+	for(i=0;i<bitcount;i++) {
+		unsigned char on = get_bitval(AUXI_RELAY_BASE+startbits+i);
+		SET_BIT(iobits,i,on);
 	}
 	return bitcount;
 }
@@ -264,9 +253,10 @@ unsigned int io_in_get_bits(unsigned int startbits,unsigned char * iobits,unsign
 
 unsigned int read_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len)
 {
+	unsigned int i = len;
 	unsigned int base = index + GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	XEEBeginRead(base);
-	while(len--) {
+	while(i--) {
 		*buffer++ = XEERead();
 	}
 	XEEEndRead();
@@ -275,12 +265,12 @@ unsigned int read_plc_programer(unsigned int index,unsigned char * buffer,unsign
 
 unsigned int write_plc_programer(unsigned int index,unsigned char * buffer,unsigned int len)
 {
+	unsigned int i = len;
 	unsigned int base = index + GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,plc_programer);
-	XEEBeginWrite(base);
-	while(len--) {
+	XEEBeginWrite(base);	
+	while(i--) {
 		XEEWrite(*buffer++);
 	}
 	XEEEndWrite();
 	return len;
 }
-
