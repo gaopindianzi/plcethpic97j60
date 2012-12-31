@@ -230,7 +230,7 @@ FF
 const unsigned char plc_test_flash[512] =
 {
 	0,
-#if 0  //客户指定1小时关的
+#if 1  //客户指定1小时关的
 	PLC_LDP, 0x00,0x00,
 	PLC_SET, 0x02,50,
 	PLC_SET, 0x02,0x00,
@@ -354,7 +354,7 @@ const unsigned char plc_test_flash[512] =
 #endif
 
 
-#if 1  //简单测试
+#if 0  //简单测试
 	PLC_LDP, 0x00,0x00,
 	PLC_SEI, 0x02,0x00,
 	PLC_LDP, 0x00,0x01,
