@@ -13,8 +13,9 @@ typedef   DWORD  u32_t;
 
 extern const unsigned char  code_msk[8];
 
-#define GET_OFFSET_MEM_OF_STRUCT(type,member)   (&(((type *)0)->member) - ((type *)0))
-#define GET_ARRRYS_NUM(type)                    (sizeof(type)/sizeof((&type)[0]))
+#define GET_OFFSET_MEM_OF_STRUCT(type,member)   ((unsigned char *)(&(((type *)0)->member)) - ((unsigned char *)((type *)0)))
+#define GET_MEM_SIZE_OF_STRUCT(type,member)     ((unsigned char *)0 + sizeof(type) - (unsigned char *)(&(((type *)0)->member)))
+//#define GET_ARRRYS_NUM(type)                    (sizeof(type)/sizeof((&type)[0]))
 #define SET_BIT(Bitarrys,Index,On)      do{ if(On) { (Bitarrys)[(Index)/8] |=  code_msk[(Index)%8]; } else { \
                                                     (Bitarrys)[(Index)/8] &= ~code_msk[(Index)%8]; } } while(0)
 #define BIT_IS_SET(Bitarrys,Index)       (((Bitarrys)[(Index)/8]&code_msk[(Index)%8])?1:0)

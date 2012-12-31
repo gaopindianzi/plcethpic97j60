@@ -63,7 +63,6 @@ typedef struct _COUNTER_ARRAYS_T
 COUNTER_ARRAYS_T counter_arrys;
 
 //输入口
-unsigned int  input_num;
 unsigned char inputs_new[BITS_TO_BS(IO_INPUT_COUNT)];
 unsigned char inputs_last[BITS_TO_BS(IO_INPUT_COUNT)];
 //输出继电器
@@ -72,6 +71,13 @@ unsigned char output_new[BITS_TO_BS(IO_OUTPUT_COUNT)];
 //辅助继电器
 unsigned char auxi_relays[BITS_TO_BS(AUXI_RELAY_COUNT)];
 unsigned char auxi_relays_last[BITS_TO_BS(AUXI_RELAY_COUNT)];
+//特殊寄存器
+unsigned char speicial_relays[BITS_TO_BS(SPECIAL_RELAY_COUNT)];
+unsigned char speicial_relays_last[BITS_TO_BS(SPECIAL_RELAY_COUNT)];
+//保持寄存器影像，读再次，写包括写物理期间
+unsigned char hold_register_map[BITS_TO_BS(AUXI_HOLDRELAY_COUNT)];
+unsigned char hold_register_map_last[BITS_TO_BS(AUXI_HOLDRELAY_COUNT)];
+unsigned char hold_durty = 0;
 //字节变量，通用变量
 unsigned char general_reg[REG_COUNT];   //普通变量
 //RTC实时时间影像寄存器，没秒更新一次自动变化
@@ -82,7 +88,7 @@ unsigned char temp_reg[REG_TEMP_COUNT];
 volatile unsigned int  time100ms_come_flag;
 volatile unsigned int  time1s_come_flag;
 //运算器的寄存器
-#define  BIT_STACK_LEVEL     16
+#define  BIT_STACK_LEVEL     32
 unsigned char bit_acc;
 unsigned char bit_stack[BITS_TO_BS(BIT_STACK_LEVEL)];   //比特堆栈，PLC的位运算结果压栈在这里，总共有32层栈
 unsigned char bit_stack_sp;   //比特堆栈的指针
@@ -155,18 +161,22 @@ void plc_timing_tick_process(void)
 
 void PlcInit(void)
 {
-	bit_acc = 0;
-	memset(bit_stack,0,sizeof(bit_stack));
-	bit_stack_sp = 0;
 	io_in_get_bits(0,inputs_new,IO_INPUT_COUNT);
 	memcpy(inputs_last,inputs_new,sizeof(inputs_new));
     memset(auxi_relays,0,sizeof(auxi_relays));
     memset(auxi_relays_last,0,sizeof(auxi_relays_last));
-	plc_command_index = 0;
+
 	memset(output_new,0,sizeof(output_new));
 	memset(output_last,0,sizeof(output_last));
     io_out_get_bits(0,output_last,IO_OUTPUT_COUNT);
-	sys_time_tick_init();
+
+	memset(speicial_relays,0,sizeof(speicial_relays));
+	memset(speicial_relays_last,0,sizeof(speicial_relays_last));
+	{ //复位状态简单的初始化为1，即表示上电标志（此位人工清零）
+		SET_BIT(speicial_relays,0,1);
+	}
+	
+		
 	time100ms_come_flag = 0;
 	time1s_come_flag = 0;
 	memset(&tim100ms_arrys,0,sizeof(tim100ms_arrys));
@@ -175,6 +185,10 @@ void PlcInit(void)
 	memset(general_reg,0,sizeof(general_reg));
 	sys_time_tick_init();
 	plc_rtc_tick_process();
+	bit_acc = 0;
+	memset(bit_stack,0,sizeof(bit_stack));
+	bit_stack_sp = 0;
+	plc_command_index = 0;
 }
 
 
@@ -215,11 +229,135 @@ FF
 */
 
 
-const unsigned char plc_test_flash[128] =
+const unsigned char plc_test_flash[512] =
 {
 	0,
-	//PLC_BCMP, 30,    0x10,0,  0x01,0x00,
-	//PLC_BZCP, 20,22, 0x10,0x08,  0x01,0x00,
+#if 1  //客户指定1小时关的
+	PLC_LDP, 0x00,0x00,
+	PLC_SET, 0x02,50,
+	PLC_SET, 0x02,0x00,
+	PLC_LDF, 0x00,0x00,
+	PLC_RST, 0x02,50,
+	PLC_RST, 0x02,0x00,
+
+	PLC_LDP, 0x00,0x01,
+	PLC_SET, 0x02,51,
+	PLC_SET, 0x02,0x01,
+	PLC_LDF, 0x00,0x01,
+	PLC_RST, 0x02,51,
+	PLC_RST, 0x02,0x01,
+
+	PLC_LDP, 0x00,0x02,
+	PLC_SET, 0x02,52,
+	PLC_SET, 0x02,0x02,
+	PLC_LDF, 0x00,0x02,
+	PLC_RST, 0x02,52,
+	PLC_RST, 0x02,0x02,
+
+	PLC_LDP, 0x00,0x03,
+	PLC_SET, 0x02,53,
+	PLC_SET, 0x02,0x03,
+	PLC_LDF, 0x00,0x03,
+	PLC_RST, 0x02,53,
+	PLC_RST, 0x02,0x03,
+
+	PLC_LDP, 0x00,0x04,
+	PLC_SET, 0x02,54,
+	PLC_SET, 0x02,0x04,
+	PLC_LDF, 0x00,0x04,
+	PLC_RST, 0x02,54,
+	PLC_RST, 0x02,0x04,
+
+	PLC_LDP, 0x00,0x05,
+	PLC_SET, 0x02,55,
+	PLC_SET, 0x02,0x05,
+	PLC_LDF, 0x00,0x05,
+	PLC_RST, 0x02,55,
+	PLC_RST, 0x02,0x05,
+
+	PLC_LDP, 0x00,0x06,
+	PLC_SET, 0x02,56,
+	PLC_SET, 0x02,0x06,
+	PLC_LDF, 0x00,0x06,
+	PLC_RST, 0x02,56,
+	PLC_RST, 0x02,0x06,
+
+	PLC_LDP, 0x00,0x07,
+	PLC_SET, 0x02,57,
+	PLC_SET, 0x02,0x07,
+	PLC_LDF, 0x00,0x07,
+	PLC_RST, 0x02,57,
+	PLC_RST, 0x02,0x07,
+
+	PLC_LDP, 0x00,0x08,
+	PLC_SET, 0x02,58,
+	PLC_SET, 0x02,0x08,
+	PLC_LDF, 0x00,0x08,
+	PLC_RST, 0x02,58,
+	PLC_RST, 0x02,0x08,
+
+	PLC_LD,  0x02,50,
+	PLC_OUTT,0x0C,0x00,0x0E,0x10,
+	PLC_LD,  0x02,51,
+	PLC_OUTT,0x0C,0x01,0x0E,0x10,
+	PLC_LD,  0x02,52,
+	PLC_OUTT,0x0C,0x02,0x0E,0x10,  //最后两位是时间
+	PLC_LD,  0x02,53,
+	PLC_OUTT,0x0C,0x03,0x0E,0x10,
+	PLC_LD,  0x02,54,
+	PLC_OUTT,0x0C,0x04,0x0E,0x10,
+	PLC_LD,  0x02,55,
+	PLC_OUTT,0x0C,0x05,0x0E,0x10,
+	PLC_LD,  0x02,56,
+	PLC_OUTT,0x0C,0x06,0x0E,0x10,
+	PLC_LD,  0x02,57,
+	PLC_OUTT,0x0C,0x07,0x0E,0x10,
+
+	PLC_LDP, 0x0C,0x00,
+	PLC_RST, 0x02,0x00,
+
+	PLC_LDP, 0x0C,0x01,
+	PLC_RST, 0x02,0x01,
+
+	PLC_LDP, 0x0C,0x02,
+	PLC_RST, 0x02,0x02,
+
+	PLC_LDP, 0x0C,0x03,
+	PLC_RST, 0x02,0x03,
+
+	PLC_LDP, 0x0C,0x04,
+	PLC_RST, 0x02,0x04,
+
+	PLC_LDP, 0x0C,0x05,
+	PLC_RST, 0x02,0x05,
+
+	PLC_LDP, 0x0C,0x06,
+	PLC_RST, 0x02,0x06,
+
+	PLC_LDP, 0x0C,0x07,
+	PLC_RST, 0x02,0x07,
+
+	PLC_LD,  0x02,0x00,
+	PLC_OUT, 0x01,0x00,
+	PLC_LD,  0x02,0x01,
+	PLC_OUT, 0x01,0x01,
+	PLC_LD,  0x02,0x02,
+	PLC_OUT, 0x01,0x02,
+	PLC_LD,  0x02,0x03,
+	PLC_OUT, 0x01,0x03,
+	PLC_LD,  0x02,0x04,
+	PLC_OUT, 0x01,0x04,
+	PLC_LD,  0x02,0x05,
+	PLC_OUT, 0x01,0x05,
+	PLC_LD,  0x02,0x06,
+	PLC_OUT, 0x01,0x06,
+	PLC_LD,  0x02,0x07,
+	PLC_OUT, 0x01,0x07,
+#endif
+
+
+
+
 	PLC_END
 };
 
@@ -279,7 +417,7 @@ void plc_code_test_init(void)
 
 void read_next_plc_code(void)
 {
-#if 1
+#if 0
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	unsigned int size = sizeof(My_APP_Info_Struct) - base;
@@ -321,12 +459,16 @@ unsigned char get_bitval(unsigned int index)
 		index -= AUXI_RELAY_BASE;
         bitval = BIT_IS_SET(auxi_relays,index);
     } else if(index >= AUXI_HOLDRELAY_BASE && index < (AUXI_HOLDRELAY_BASE + AUXI_HOLDRELAY_COUNT)) {
-		unsigned char B,b,reg;
+		//unsigned char B,b,reg;
 		index -= AUXI_HOLDRELAY_BASE;
-		B = index / 8;
-		b = index % 8;
-		RtcRamRead(B,&reg,1);
-		bitval = BIT_IS_SET(&reg,b);
+		//B = index / 8;
+		//b = index % 8;
+		//holder_register_read(B,&reg,1);
+		bitval = BIT_IS_SET(hold_register_map,index);
+	} else if(index >= SPECIAL_RELAY_BASE && index < (SPECIAL_RELAY_BASE+SPECIAL_RELAY_COUNT)) {
+		//读取上电保持继电器状态，人工清零 
+		index -= SPECIAL_RELAY_BASE;
+		bitval = BIT_IS_SET(speicial_relays,index);
 	} else if(index >= TIMING100MS_EVENT_BASE && index < (TIMING100MS_EVENT_BASE+TIMING100MS_EVENT_COUNT)) {
 		index -= TIMING100MS_EVENT_BASE;
         bitval = BIT_IS_SET(tim100ms_arrys.event_bits,index);
@@ -356,13 +498,18 @@ static unsigned char get_last_bitval(unsigned int index)
 		index -= AUXI_RELAY_BASE;
         bitval = BIT_IS_SET(auxi_relays_last,index);
     } else if(index >= AUXI_HOLDRELAY_BASE && index < (AUXI_HOLDRELAY_BASE + AUXI_HOLDRELAY_COUNT)) {
-		unsigned char B,b,reg;
+		//unsigned char B,b,reg;
 		index -= AUXI_HOLDRELAY_BASE;
-		index += AUXI_HOLDRELAY_COUNT / 8; //后面一部分是上一次的
-		B = index / 8;
-		b = index % 8;
-		RtcRamRead(B,&reg,1);
-		bitval = BIT_IS_SET(&reg,b);
+		//index += AUXI_HOLDRELAY_COUNT / 8; //后面一部分是上一次的
+		//B = index / 8;
+		//b = index % 8;
+		//holder_register_read(B,&reg,1);
+		//bitval = BIT_IS_SET(&reg,b);
+		bitval = BIT_IS_SET(hold_register_map_last,index);
+	} else if(index >= SPECIAL_RELAY_BASE && index < (SPECIAL_RELAY_BASE+SPECIAL_RELAY_COUNT)) {
+		//读取上电保持继电器状态，人工清零 
+		index -= SPECIAL_RELAY_BASE;
+		bitval = BIT_IS_SET(speicial_relays_last,index);
 	} else if(index >= TIMING100MS_EVENT_BASE && index < (TIMING100MS_EVENT_BASE+TIMING100MS_EVENT_COUNT)) {
 		index -= TIMING100MS_EVENT_BASE;
         bitval = BIT_IS_SET(tim100ms_arrys.event_bits_last,index);
@@ -390,13 +537,19 @@ void set_bitval(unsigned int index,unsigned char bitval)
 		index -= AUXI_RELAY_BASE;
         SET_BIT(auxi_relays,index,bitval);
     } else if(index >= AUXI_HOLDRELAY_BASE && index < (AUXI_HOLDRELAY_BASE + AUXI_HOLDRELAY_COUNT)) {
-		unsigned char B,b,reg;
+		//unsigned char B,b,reg;
 		index -= AUXI_HOLDRELAY_BASE;
-		B = index / 8;
-		b = index % 8;
-		RtcRamRead(B,&reg,1);
-		SET_BIT(&reg,b,bitval);
-		RtcRamWrite(B,&reg,1);
+		//B = index / 8;
+		//b = index % 8;
+		//holder_register_read(B,&reg,1);
+		//SET_BIT(&reg,b,bitval);
+		//holder_register_write(B,&reg,1);
+		SET_BIT(hold_register_map,index,bitval);
+		hold_durty = 1;
+	} else if(index >= SPECIAL_RELAY_BASE && index < (SPECIAL_RELAY_BASE+SPECIAL_RELAY_COUNT)) {
+		//读取上电保持继电器状态，人工清零 
+		index -= SPECIAL_RELAY_BASE;
+		SET_BIT(speicial_relays,index,bitval);
 	} else if(index >= COUNTER_EVENT_BASE && index < (COUNTER_EVENT_BASE+COUNTER_EVENT_COUNT)) {
 	    //计数器的值不可以置位,只可以复位
 		if(!bitval) {
@@ -453,7 +606,7 @@ void timing_cell_prcess(void)
 	sys_unlock();
     {
 	    TIM100MS_ARRAYS_T * ptiming = &tim100ms_arrys;
-	    for(i=0;i<GET_ARRRYS_NUM(tim100ms_arrys.counter);i++) {
+	    for(i=0;i<TIMING100MS_EVENT_COUNT;i++) {
 		    if(BIT_IS_SET(ptiming->enable_bits,i)) { //如果允许计时
 			    if(counter > 0 && !BIT_IS_SET(ptiming->event_bits,i)) {  //如果时间事件未发生
 				    if(ptiming->counter[i] > counter) {
@@ -463,7 +616,7 @@ void timing_cell_prcess(void)
 					}
 					if(ptiming->counter[i] == 0) {
 					    SET_BIT(ptiming->event_bits,i,1);
-						if(THIS_INFO)putrsUART((ROM char*)"timing100ms event come.");
+						//if(THIS_INFO)putrsUART((ROM char*)"timing100ms event come.");
 					}
 				}
 			} else {
@@ -484,18 +637,18 @@ void timing_cell_prcess(void)
 	sys_unlock();
 	{
 	    TIM1S_ARRAYS_T * ptiming = &tim1s_arrys;
-	    for(i=0;i<GET_ARRRYS_NUM(tim1s_arrys.counter);i++) {
+	    for(i=0;i<TIMING1S_EVENT_COUNT;i++) {
 		    if(BIT_IS_SET(ptiming->enable_bits,i)) { //如果允许计时
 			    if(counter > 0 && !BIT_IS_SET(ptiming->event_bits,i)) {  //如果时间事件未发生
 				    if(ptiming->counter[i] > counter) {
 					    ptiming->counter[i] -= counter;
 					} else {
 					    ptiming->counter[i] = 0;
-						if(THIS_INFO)putrsUART((ROM char*)"1s come.");
+						//if(THIS_INFO)putrsUART((ROM char*)"1s come.");
 					}
 					if(ptiming->counter[i] == 0) {
 					    SET_BIT(ptiming->event_bits,i,1);
-						if(THIS_INFO)putrsUART((ROM char*)"timing1s event [come].");
+						//if(THIS_INFO)putrsUART((ROM char*)"timing1s event [come].");
 					}
 				}
 			} else {
@@ -527,7 +680,7 @@ static void timing_cell_start(unsigned int index,unsigned int event_count,unsign
 			SET_BIT(ptiming->upordown_bits,index,upordown);
 			SET_BIT(ptiming->holding_bits, index,holding);
 			SET_BIT(ptiming->event_bits,   index,0);
-			if(THIS_INFO)putrsUART((ROM char*)"timing100ms start.");
+			//if(THIS_INFO)putrsUART((ROM char*)"timing100ms start.");
 		}
 	} else if(index >= TIMING1S_EVENT_BASE && index < (TIMING1S_EVENT_BASE+TIMING1S_EVENT_COUNT)) {
 	    TIM1S_ARRAYS_T * ptiming = &tim1s_arrys;
@@ -538,7 +691,7 @@ static void timing_cell_start(unsigned int index,unsigned int event_count,unsign
 			SET_BIT(ptiming->upordown_bits,index,upordown);
 			SET_BIT(ptiming->holding_bits, index,holding);
 			SET_BIT(ptiming->event_bits,   index,0);
-			if(THIS_INFO)putrsUART((ROM char*)"timing1s start.");
+			//if(THIS_INFO)putrsUART((ROM char*)"timing1s start.");
 		}
 	} else {
 		handle_plc_command_error();
@@ -560,11 +713,11 @@ static void timing_cell_stop(unsigned int index)
 	    TIM1S_ARRAYS_T * ptiming = &tim1s_arrys;
 		index -= TIMING1S_EVENT_BASE;
 		if(BIT_IS_SET(ptiming->enable_bits,index)) {
-		    if(THIS_INFO)putrsUART((ROM char*)"timing1ms stop.");
+		    //if(THIS_INFO)putrsUART((ROM char*)"timing1ms stop.");
 		    SET_BIT(ptiming->enable_bits,  index,0);
 		}
 	} else {
-		if(THIS_ERROR)putrsUART((ROM char*)"timing stop error");
+		//if(THIS_ERROR)putrsUART((ROM char*)"timing stop error");
 	    handle_plc_command_error();
 	}
 }
@@ -801,7 +954,7 @@ void handle_plc_out_c(void)
 	//计数器内部维持上一次的触发电平
 	//触发计数器的时候，把这次的触发电平触发进计数器
 	if(bit_acc) {
-	    if(index < GET_ARRRYS_NUM(counter_arrys.counter)) {
+	    if(index < COUNTER_EVENT_COUNT) {
 	        if(!BIT_IS_SET(counter_arrys.last_trig_bits,index)) {
 		        //上一次是低电平，这次是高电平，可以触发计数
 			    if(counter_arrys.counter[index] < kval) {
@@ -813,7 +966,7 @@ void handle_plc_out_c(void)
 		}
 	}
 	//把电平记录到计数器去
-	if(index < GET_ARRRYS_NUM(counter_arrys.counter)) {
+	if(index < COUNTER_EVENT_COUNT) {
 	    SET_BIT(counter_arrys.last_trig_bits,index,bit_acc);
 	}
 	plc_command_index += 5;
@@ -821,6 +974,8 @@ void handle_plc_out_c(void)
 
 /**********************************************
  * 区间复位指令，比如把Y0 - Y7 复位
+ * 第一版end不闭合，就是开合
+ * 这个不行，应该是闭合的，即包括最后一个
  */
 void handle_plc_zrst(void)
 {
@@ -836,7 +991,7 @@ void handle_plc_zrst(void)
 	unsigned int start = HSB_BYTES_TO_WORD(&plc->start_hi);
 	unsigned int end = HSB_BYTES_TO_WORD(&plc->end_hi);
 	unsigned int i;
-	for(i=start;i<end;i++) {
+	for(i=start;i<=end;i++) {
 		set_bitval(i,0);
 	}
 	plc_command_index += sizeof(zrst_command);
@@ -844,7 +999,9 @@ void handle_plc_zrst(void)
 /**********************************************
  * 比较指令
  * BCMP   K   B   M0
- * 该指令为字节比较指令，将比较的结果<,=,>三种结果分别告知给M0，M1，M2。
+ * 第一版发货的: K < reg 1,0,0, K = reg ==> 0,1,0    K > reg ==> 0,0,1
+ * 经过测试，指令不够直观，应该是变化的寄存器小于K，应该是1,0,0,
+ * 第二版改为： reg < K 1,0,0, K = reg ==> 0,1,0    reg > K ==> 0,0,1
  */
 void handle_plc_bcmp(void)
 {
@@ -860,21 +1017,186 @@ void handle_plc_bcmp(void)
 	plc_command * plc = (plc_command *)plc_command_array;
 	unsigned char reg = get_byte_val(HSB_BYTES_TO_WORD(&plc->reg_hi));
 	unsigned int  out = HSB_BYTES_TO_WORD(&plc->out_hi);
-	if(plc->kval < reg) {
+	if(plc->cmd == PLC_BCMP) {  //三个寄存器的指令
+	    if(reg < plc->kval) {
+		    set_bitval(out,1);
+		    set_bitval(out+1,0);
+		    set_bitval(out+2,0);
+	    } else if(reg == plc->kval) {
+		    set_bitval(out,0);
+		    set_bitval(out+1,1);
+		    set_bitval(out+2,0);
+	    } else if(reg > plc->kval) {
+		    set_bitval(out,0);
+		    set_bitval(out+1,0);
+		    set_bitval(out+2,1);
+	    }
+	} else if(plc->cmd == PLC_BCMPL) {
+	    if(reg < plc->kval) {
+		    set_bitval(out,1);
+			bit_acc = 1;
+		} else {
+		    set_bitval(out,0);
+			bit_acc = 0;
+	    }
+	} else if(plc->cmd == PLC_BCMPB) {
+	    if(reg > plc->kval) {
+		    set_bitval(out,1);
+			bit_acc = 1;
+		} else {
+		    set_bitval(out,0);
+			bit_acc = 0;
+	    }
+	} else if(plc->cmd == PLC_BCMPE) {  //单个寄存器的指令
+	    if(reg == plc->kval) {
+		    set_bitval(out,1);
+			bit_acc = 1;
+		} else {
+		    set_bitval(out,0);
+			bit_acc = 0;
+	    }
+	}
+	plc_command_index += sizeof(plc_command);
+}
+
+/**********************************************
+ * 多字节比较指令
+ * 注意，是寄存器的值，跟常数比较，BACMPL是寄存器小于的意思，以此类推
+ * 左边即是常数，右边是寄存器
+ */
+void handle_plc_bacmp(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char size;
+		unsigned char k_base;  //后面还有很多k，总共有size个
+	} plc_command;
+	typedef struct _plc_bacmp_t
+	{
+		unsigned char b_base_hi;
+		unsigned char b_base_lo;
+		unsigned char out_hi;
+		unsigned char out_lo;
+	} plc_bacmp_t;
+	plc_command  * plc  = (plc_command *)plc_command_array;
+	plc_bacmp_t * pacmp = (plc_bacmp_t *)(plc_command_array+sizeof(plc_command) - 1 +plc->size);  //减去k_base占位一字节
+	unsigned char * pk  = &plc->k_base;
+	unsigned int base   = HSB_BYTES_TO_WORD(&pacmp->b_base_hi);
+	unsigned int out    = HSB_BYTES_TO_WORD(&pacmp->out_hi);
+	unsigned char result = 0;
+	//从右边比起
+	if(plc->cmd == PLC_BACMPB) {
+		unsigned char i;
+		result = 0;
+	    for(i=plc->size;i>0;i--) {
+		    unsigned char k = pk[i-1];
+		    unsigned char reg = get_byte_val(base+i-1);
+			if(reg > k) {
+				result = 1;
+				break;
+			} else if(reg < k) {
+				break;
+			}
+	    }
+	} else if(plc->cmd == PLC_BACMPE) {
+		unsigned char i;
+		result = 1;
+	    for(i=plc->size;i>0;i--) {
+		    unsigned char lreg = pk[i-1];
+		    unsigned char rreg = get_byte_val(base+i-1);
+			if(lreg != rreg) { //发现假的条件，立刻退出
+				result = 0;
+				break;
+			}
+	    }
+	} else if(plc->cmd == PLC_BACMPL) {
+		unsigned char i;
+		result = 0;
+	    for(i=plc->size;i>0;i--) {
+		    unsigned char k = pk[i-1];
+		    unsigned char reg = get_byte_val(base+i-1);
+			if(reg < k) {
+				result = 1;
+				break;
+			} else if(reg > k) {
+				break;
+			}
+	    }
+	}
+	set_bitval(out,result);
+	bit_acc = result;
+	plc_command_index += sizeof(plc_command) + sizeof(plc_bacmp_t) + plc->size - 1; //减去k_base占位一字节
+}
+
+/**********************************************
+ * 多字节区间比较指令
+ * 注意，左边几个 ，右边几个，中间是寄存器
+ */
+void handle_plc_bazcp(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char size;
+		unsigned char k_base;  //后面还有很多k，总共有size个
+	} plc_command;
+	typedef struct _plc_bacmp_t
+	{
+		unsigned char b_base_hi;
+		unsigned char b_base_lo;
+		unsigned char out_hi;
+		unsigned char out_lo;
+	} plc_bacmp_t;
+	plc_command  * plc  = (plc_command *)plc_command_array;
+	plc_bacmp_t * pacmp = (plc_bacmp_t *)(plc_command_array+sizeof(plc_command) - 1 + plc->size * 2);  //减去k_base占位一字节
+	unsigned char * pkl  = &plc->k_base;
+	unsigned char * pkr  = pkl + plc->size;
+	unsigned int base   = HSB_BYTES_TO_WORD(&pacmp->b_base_hi);
+	unsigned int out    = HSB_BYTES_TO_WORD(&pacmp->out_hi);
+	unsigned char result;
+	//先比较左边小于条件
+	unsigned char i;
+	result = 0; //假设在左边
+	for(i=plc->size;i>0;i--) {
+	    unsigned char k = pkl[i-1];
+	    unsigned char reg = get_byte_val(base+i-1);
+		if(reg < k) {
+			break;
+		} else if(reg > k) { //判断结果在右边
+			result = 1;
+			break;
+		}
+	}
+	if(result == 1) { //左边成立的
+	    for(i=plc->size;i>0;i--) {
+		    unsigned char k = pkr[i-1];
+		    unsigned char reg = get_byte_val(base+i-1);
+			if(reg > k) {  //判断结果在最右边
+				result = 2;
+				break;
+			} else if(reg < k) {
+				break;
+			}
+	    }
+	}
+	if(result == 0) {
 		set_bitval(out,1);
 		set_bitval(out+1,0);
 		set_bitval(out+2,0);
-	} else if(plc->kval == reg) {
+	} else if(result == 1) {
 		set_bitval(out,0);
 		set_bitval(out+1,1);
 		set_bitval(out+2,0);
-	} else if(plc->kval > reg) {
+	} else if(result == 2) {
 		set_bitval(out,0);
 		set_bitval(out+1,0);
 		set_bitval(out+2,1);
 	}
-	plc_command_index += sizeof(plc_command);
+	plc_command_index += sizeof(plc_command) + sizeof(plc_bacmp_t) + plc->size*2 - 1; //减去k_base占位一字节
 }
+
+
 /**********************************************
  * 字节区间比较指令
  * BZCP   K1  K2  B  M0
@@ -895,21 +1217,56 @@ void handle_plc_bzcp(void)
 	plc_command * plc = (plc_command *)plc_command_array;
 	unsigned char reg = get_byte_val(HSB_BYTES_TO_WORD(&plc->reg_hi));
 	unsigned int  out = HSB_BYTES_TO_WORD(&plc->out_hi);
-	if(reg < plc->klow) {
-		set_bitval(out,1);
-		set_bitval(out+1,0);
-		set_bitval(out+2,0);
-	} else if(reg >= plc->klow && reg <= plc->khig) {
-		set_bitval(out,0);
-		set_bitval(out+1,1);
-		set_bitval(out+2,0);
-	} else if(reg > plc->khig) {
-		set_bitval(out,0);
-		set_bitval(out+1,0);
-		set_bitval(out+2,1);
+	if(plc->cmd == PLC_BZCP) {
+	    if(reg < plc->klow) {
+		    set_bitval(out,1);
+		    set_bitval(out+1,0);
+		    set_bitval(out+2,0);
+	    } else if(reg >= plc->klow && reg <= plc->khig) {
+		    set_bitval(out,0);
+		    set_bitval(out+1,1);
+		    set_bitval(out+2,0);
+	    } else if(reg > plc->khig) {
+		    set_bitval(out,0);
+		    set_bitval(out+1,0);
+		    set_bitval(out+2,1);
+	    }
+	} else if(plc->cmd == PLC_BZCPS) {
+		if(reg >= plc->klow && reg <= plc->khig) {
+			set_bitval(out,1);
+			bit_acc = 1;
+		} else {
+			set_bitval(out,0);
+			bit_acc = 0;
+		}
 	}
 	plc_command_index += sizeof(plc_command);
 }
+
+/**********************************************
+ * 跳转和条件跳转指令
+ */
+void handle_plc_jmp(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char jmp_step_hi;
+		unsigned char jmp_step_lo;
+	} plc_command;
+	plc_command * plc = (plc_command *)plc_command_array;
+	unsigned int step = HSB_BYTES_TO_WORD(&plc->jmp_step_hi);
+	if(plc->cmd == PLC_JMPS) {
+		if(bit_acc) {
+		    plc_command_index += step;
+		}
+	} else if(plc->cmd == PLC_JMP) {
+	    plc_command_index += step;
+	}
+	plc_command_index += sizeof(plc_command);
+}
+
+
 
 
 
@@ -1110,10 +1467,26 @@ void PlcProcess(void)
         handle_plc_net_rb(); 
         break;
 	case PLC_BCMP:
+	case PLC_BCMPE:
+	case PLC_BCMPL:
+	case PLC_BCMPB:
 		handle_plc_bcmp();
 		break;
+	case PLC_BACMPL:
+	case PLC_BACMPE:
+	case PLC_BACMPB:
+		handle_plc_bacmp();
+		break;
 	case PLC_BZCP:
+	case PLC_BZCPS:
 		handle_plc_bzcp();
+		break;
+	case PLC_BAZCP:
+		handle_plc_bazcp();
+		break;
+	case PLC_JMP:
+	case PLC_JMPS:
+		handle_plc_jmp();
 		break;
     case PLC_NETWB:
     case PLC_NETRW:
@@ -1138,13 +1511,14 @@ void PlcProcess(void)
 	//辅助继电器
 	memcpy(auxi_relays_last,auxi_relays,sizeof(auxi_relays));
 	//
-	{//保持继电器的内存搬移
-		unsigned int i;
-		unsigned char reg;
-		for(i=0;i<AUXI_HOLDRELAY_COUNT/8;i++) { //RTC内存字节数的一半
-			RtcRamRead(i,&reg,1);
-			RtcRamWrite(i+AUXI_HOLDRELAY_COUNT/8,&reg,1); //拷贝到后半部分
+	memcpy(speicial_relays_last,speicial_relays,sizeof(speicial_relays));
+	{ //写到RTC芯片中
+		if(hold_durty) { //脏了，必须写回去
+			hold_durty = 0;
+
 		}
+		//保持继电器的内存搬移
+		memcpy(hold_register_map_last,hold_register_map,sizeof(hold_register_map));
 	}
 	//系统时间处理，可以拿到定时器中断处理
 	memcpy(tim100ms_arrys.event_bits_last,tim100ms_arrys.event_bits,sizeof(tim100ms_arrys.event_bits));
