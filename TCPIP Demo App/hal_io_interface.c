@@ -86,8 +86,10 @@ unsigned int io_out_convert_bits(unsigned int startbits,unsigned char * iobits,u
 	}
 	//¿ªÊ¼ÉèÖÃ
 	for(i=0;i<bitcount;i++) {
-	   unsigned char ch = get_bitval(AUXI_RELAY_BASE+startbits+i);
-	   set_bitval(AUXI_RELAY_BASE+startbits+i,!ch);
+		if(BIT_IS_SET(iobits,i)) {
+	       unsigned char ch = get_bitval(AUXI_RELAY_BASE+startbits+i);
+	       set_bitval(AUXI_RELAY_BASE+startbits+i,!ch);
+		}
 	}
 	return bitcount;
 }
