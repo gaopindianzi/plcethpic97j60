@@ -231,7 +231,7 @@ void RtcRamRead(unsigned char addr,unsigned char * buffer,unsigned char len)
 	unsigned char i;
 	WriteDS1302( Add_CONTROL,0x00 );		//关闭写保护
 	for(i=0;i<len;i++) {
-		buffer[i] = ReadDS1302(Add_RAM0|0x01|(i<<1));
+		buffer[i] = ReadDS1302(Add_RAM0|0x01|((addr+i)<<1));
 	}
 	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护 
 }
@@ -244,7 +244,7 @@ void RtcRamWrite(unsigned char addr,unsigned char * buffer,unsigned char len)
 	unsigned char i;
 	WriteDS1302( Add_CONTROL,0x00 );		//关闭写保护
 	for(i=0;i<len;i++) {	
-		WriteDS1302(Add_RAM0|(i<<1),buffer[i]);
+		WriteDS1302(Add_RAM0|((addr+i)<<1),buffer[i]);
 	}
 	WriteDS1302( Add_CONTROL,0x80 );		//打开写保护 
 }
