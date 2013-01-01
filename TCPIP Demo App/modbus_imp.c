@@ -21,6 +21,7 @@
 
 #define  READ_COILS                 0x01
 #define  READ_DISCRETES             0x02
+#define  READ_MULTIPLE_REGISTER     0x03
 #define  FORCE_SINGLE_COIL          0x05
 
 typedef struct _crc_t
@@ -28,6 +29,12 @@ typedef struct _crc_t
 	unsigned char crc_hi;
 	unsigned char crc_lo;
 } crc_t;
+
+typedef struct _word_t
+{
+	unsigned char w_hi;
+	unsigned char w_lo;
+} word_t;
 
 
 unsigned int ForceSingleCoil(unsigned char * buffer,unsigned int len)
@@ -140,6 +147,68 @@ unsigned int read_input_discretes(unsigned char * buffer,unsigned int len)
 	return 0;
 }
 
+/*******************************************************
+ *  读多个寄存器
+ *  一个寄存器是一个字，两个字节为单位的字
+ */
+
+unsigned int read_multiple_register(unsigned char * buffer,unsigned int len)
+{
+	typedef struct _modbus_head_t
+	{
+		unsigned char idhi;
+		unsigned char idlo;
+		unsigned char protocal_hi;
+		unsigned char protocal_lo;
+		unsigned char length_hi;
+		unsigned char length_lo;
+		unsigned char slave_addr;
+		unsigned char function;
+		unsigned char start_refnum_hi;
+		unsigned char start_refnum_lo;
+		unsigned char word_count_hi;
+		unsigned char word_count_lo;
+	} modbus_head_t;
+	typedef struct _modbus_ack
+	{
+		unsigned char idhi;
+		unsigned char idlo;
+		unsigned char protocal_hi;
+		unsigned char protocal_lo;
+		unsigned char length_hi;
+		unsigned char length_lo;
+		unsigned char slave_addr;
+		unsigned char function;
+		unsigned char byte_count;
+		unsigned char reg_base;
+	} modbus_ack;
+	modbus_head_t * pm = (modbus_head_t *)buffer;
+	modbus_ack * pack = (modbus_ack *)buffer;
+	unsigned int refnum,i;
+	unsigned int word_count;
+	WORD * pword = (WORD *)(pack->reg_base);
+	if(len < sizeof(modbus_head_t)) {
+		return 0;
+	}
+	refnum = HSB_BYTES_TO_WORD(&pm->start_refnum_hi);
+	word_count = HSB_BYTES_TO_WORD(&pm->word_count_hi);
+	//直接调用PLC寄存器读写接口
+	//限制读的数量,以防内存溢出
+	word_count = ((word_count*2+sizeof(modbus_head_t)) > TCP_MODBUS_RX_MAX_LEN)?
+		((TCP_MODBUS_RX_MAX_LEN - sizeof(modbus_head_t))/2):(word_count);
+	for(i=0;i<word_count;i++) {
+		word_t * pw = pword;
+		WORD w = get_word_val(refnum+i);
+		pw->w_hi = w >> 8;
+		pw->w_lo = w & 0xFF;
+		pword++;
+	}
+	pack->length_hi = 0;
+	pack->length_lo = word_count * 2 + 3;
+	pack->byte_count = (unsigned char)(word_count * 2);
+	return (sizeof(modbus_ack) - 1 + word_count * 2);
+}
+
 
 unsigned int ModbusCmdPrase(unsigned char * buffer,unsigned int len)
 {
@@ -170,6 +239,7 @@ unsigned int ModbusCmdPrase(unsigned char * buffer,unsigned int len)
 	case FORCE_SINGLE_COIL: return ForceSingleCoil(buffer,len);
 	case READ_COILS:
 	case READ_DISCRETES:    return read_input_discretes(buffer,len);
+	case READ_MULTIPLE_REGISTER:  return read_multiple_register(buffer,len);
 	default:
 		if(THISERROR)putrsUART((ROM char*)"\r\nmodbus unknow command error!!");
 		return 0;

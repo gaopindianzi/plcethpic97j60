@@ -137,6 +137,41 @@ void plc_rtc_tick_process(void)
 	rtc_reg[6] = tval.DAY;
 }
 
+WORD plc_rtc_2_word(unsigned int index,unsigned char val)
+{
+	if(index == 4) {
+		return (val+1);
+	} else if(index == 5) {
+		return (val+1900);
+	} else {
+		return val;
+	}
+}
+
+void plc_set_word_2_rtc(unsigned int index,WORD val)
+{
+	if(index == 5) {
+		val -= 1900;
+		rtc_reg[index] = val & 0xFF;
+	} else if(index == 4) {
+		rtc_reg[index] = (val - 1) & 0xFF;
+	} else if(index < 7) {
+		rtc_reg[index] = val & 0xFF;
+	}
+	{
+		DS1302_VAL tval;
+		tval.SEC = rtc_reg[0];
+		tval.MIN = rtc_reg[1];
+		tval.HR  = rtc_reg[2];
+		tval.DATE = rtc_reg[3];
+		tval.MONTH = rtc_reg[4];
+		tval.YEAR = rtc_reg[5];
+		tval.DAY = rtc_reg[6];
+		Hex2BCD(&tval,sizeof(tval));
+		UpdataRTC(&tval);
+	}
+}
+
 void plc_timing_tick_process(void)
 {
 	TICK curr = TickGet();
@@ -647,17 +682,60 @@ unsigned char get_byte_val(unsigned int index)
 	return reg;
 }
 
-void set_byte_val(unsigned int index,unsigned char val)
+WORD get_word_val(unsigned int index)
+{
+	WORD reg;
+	if(index >= REG_BASE && index < (REG_BASE+REG_COUNT)) {
+		//普通字节变量
+		index -= REG_BASE;
+		index *= 2;
+		reg   = general_reg[index+ 1];
+		reg <<= 8;
+		reg  |= general_reg[index];
+	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
+		//读取RTC时间,地址分别是年月日，时分秒，星期
+		//不需要转变成字节
+		index -= REG_RTC_BASE;
+		reg    = plc_rtc_2_word(index,rtc_reg[index]);
+	} else if(index >=REG_TEMP_BASE && index <(REG_TEMP_BASE+REG_TEMP_COUNT)) {
+		index -= REG_TEMP_BASE;
+		reg   = temp_reg[index];
+	} else {
+		reg = 0;
+	}
+	return reg;
+}
+
+void set_byte_val(unsigned int index,WORD val)
 {
 	if(index >= REG_BASE && index < (REG_BASE+REG_COUNT)) {
 		//普通字节变量
+		index -= REG_BASE;
 		general_reg[index-REG_BASE] = val;
 	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
 		//读取RTC时间,地址分别是年月日，时分秒，星期
 		//rtc_reg[index-REG_RTC_BASE] = val;暂时不能修改时间
+		index -= REG_RTC_BASE;
 	} else if(index >=REG_TEMP_BASE && index <(REG_TEMP_BASE+REG_TEMP_COUNT)) {
 	}
 }
+
+void set_word_val(unsigned int index,WORD val)
+{
+	if(index >= REG_BASE && index < (REG_BASE+REG_COUNT)) {
+		//普通字节变量
+		index -= REG_BASE;
+		general_reg[index-REG_BASE] = val & 0xFF;
+		general_reg[index-REG_BASE+1] = val >> 8;
+	} else if(index >=REG_RTC_BASE && index <(REG_RTC_BASE+REG_RTC_COUNT)) {
+		//读取RTC时间,地址分别是年月日，时分秒，星期
+		index -= REG_RTC_BASE;
+		plc_set_word_2_rtc(index,val);
+		//rtc_reg[index-REG_RTC_BASE] = val;暂时不能修改时间
+	} else if(index >=REG_TEMP_BASE && index <(REG_TEMP_BASE+REG_TEMP_COUNT)) {
+	}
+}
+
 
 /**********************************************
  * 根据条件对计时器进行增加

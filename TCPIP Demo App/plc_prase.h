@@ -40,6 +40,9 @@ extern unsigned char plc_write_delay(void);
 extern void plc_set_busy(unsigned char busy);
 extern void set_bitval(unsigned int index,unsigned char bitval);
 extern unsigned char get_bitval(unsigned int index);
+extern WORD get_word_val(unsigned int index);
+extern void set_word_val(unsigned int index,WORD val);
+
 
 extern void plc_code_test_init(void);
 
