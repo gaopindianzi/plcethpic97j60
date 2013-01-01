@@ -110,6 +110,7 @@ unsigned int  net_global_send_index = 0; //发送令牌，指示下一个个发送的令牌
 //内部用系统计数器
 static TICK  last_tick;
 static TICK  last_tick1s;
+static unsigned char rtc_sec_tick;
 
 void sys_time_tick_init(void)
 {
@@ -141,14 +142,15 @@ void plc_timing_tick_process(void)
 	TICK curr = TickGet();
 	if((curr - last_tick) >= TICK_SECOND / 10) {
 		time100ms_come_flag++;
-		last_tick = curr;
-		//if(THIS_INFO)putrsUART((ROM char*)"time tick 100ms");
+		last_tick += TICK_SECOND / 10;
 	}
 	if((curr - last_tick1s) >= TICK_SECOND) {
-		time1s_come_flag++;
-		last_tick1s = curr;
+		last_tick1s += TICK_SECOND;
 		plc_rtc_tick_process();
-		//if(THIS_INFO)putrsUART((ROM char*)"time tick 1s");
+	}
+	if(rtc_reg[0] != rtc_sec_tick) {
+		rtc_sec_tick = rtc_reg[0];
+	    time1s_come_flag++;
 	}
 }
 
@@ -168,13 +170,15 @@ void PlcInit(void)
 
 	memset(output_new,0,sizeof(output_new));
 	memset(output_last,0,sizeof(output_last));
+
+	RtcRamRead(0,hold_register_map,sizeof(hold_register_map));
+	memcpy(hold_register_map_last,hold_register_map,sizeof(hold_register_map));
+
 	memset(speicial_relays,0,sizeof(speicial_relays));
 	memset(speicial_relays_last,0,sizeof(speicial_relays_last));
 	{ //复位状态简单的初始化为1，即表示上电标志（此位人工清零）
 		SET_BIT(speicial_relays,0,1);
 	}
-	
-		
 	time100ms_come_flag = 0;
 	time1s_come_flag = 0;
 	memset(&tim100ms_arrys,0,sizeof(tim100ms_arrys));
@@ -230,7 +234,7 @@ FF
 const unsigned char plc_test_flash[512] =
 {
 	0,
-#if 1  //客户指定1小时关的
+#if 0  //客户指定1小时关的
 	PLC_LDP, 0x00,0x00,
 	PLC_SET, 0x02,50,
 	PLC_SET, 0x02,0x00,
@@ -354,7 +358,32 @@ const unsigned char plc_test_flash[512] =
 #endif
 
 
-#if 0  //简单测试
+#if 1  //简单测试
+	PLC_LDI,  0x06,0x00,
+	PLC_JMPS, 0x00,53,
+
+	PLC_LD,  0x04,00,
+	PLC_OUT, 0x02,0,
+	PLC_LD,  0x04,01,
+	PLC_OUT, 0x02,1,
+	PLC_LD,  0x04,02,
+	PLC_OUT, 0x02,2,
+	PLC_LD,  0x04,03,
+	PLC_OUT, 0x02,3,
+	PLC_LD,  0x04,04,
+	PLC_OUT, 0x02,4,
+	PLC_LD,  0x04,05,
+	PLC_OUT, 0x02,5,
+	PLC_LD,  0x04,06,
+	PLC_OUT, 0x02,6,
+	PLC_LD,  0x04,07,
+	PLC_OUT, 0x02,7,
+
+	PLC_LDKL,
+	PLC_OUT, 0x06,0x00,
+
+	PLC_END,
+
 	PLC_LDP, 0x00,0x00,
 	PLC_SEI, 0x02,0x00,
 	PLC_LDP, 0x00,0x01,
@@ -366,20 +395,28 @@ const unsigned char plc_test_flash[512] =
 
 	PLC_LD,  0x02,0x00,
 	PLC_OUT, 0x01,0x00,
+	PLC_OUT,  0x04,00,
 	PLC_LD,  0x02,0x01,
 	PLC_OUT, 0x01,0x01,
+	PLC_OUT,  0x04,01,
 	PLC_LD,  0x02,0x02,
 	PLC_OUT, 0x01,0x02,
+	PLC_OUT,  0x04,02,
 	PLC_LD,  0x02,0x03,
 	PLC_OUT, 0x01,0x03,
+	PLC_OUT,  0x04,03,
 	PLC_LD,  0x02,0x04,
 	PLC_OUT, 0x01,0x04,
+	PLC_OUT,  0x04,04,
 	PLC_LD,  0x02,0x05,
 	PLC_OUT, 0x01,0x05,
+	PLC_OUT,  0x04,05,
 	PLC_LD,  0x02,0x06,
 	PLC_OUT, 0x01,0x06,
+	PLC_OUT,  0x04,06,
 	PLC_LD,  0x02,0x07,
 	PLC_OUT, 0x01,0x07,
+	PLC_OUT,  0x04,07,
 #endif
 	PLC_END
 };
@@ -1535,13 +1572,11 @@ void PlcProcess(void)
 	memcpy(auxi_relays_last,auxi_relays,sizeof(auxi_relays));
 	//
 	memcpy(speicial_relays_last,speicial_relays,sizeof(speicial_relays));
-	{ //写到RTC芯片中
-		if(hold_durty) { //脏了，必须写回去
-			hold_durty = 0;
-
-		}
-		//保持继电器的内存搬移
-		memcpy(hold_register_map_last,hold_register_map,sizeof(hold_register_map));
+	//写到RTC芯片中
+	if(hold_durty) { //脏了，必须写回去
+		hold_durty = 0;
+		RtcRamWrite(0,hold_register_map,sizeof(hold_register_map));
+	    memcpy(hold_register_map_last,hold_register_map,sizeof(hold_register_map));
 	}
 	//系统时间处理，可以拿到定时器中断处理
 	memcpy(tim100ms_arrys.event_bits_last,tim100ms_arrys.event_bits,sizeof(tim100ms_arrys.event_bits));

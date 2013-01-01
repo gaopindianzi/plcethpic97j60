@@ -9,7 +9,7 @@
 #define  AUXI_RELAY_BASE        512  //0x02,0x00
 #define  AUXI_RELAY_COUNT                   100
 #define  AUXI_HOLDRELAY_BASE    1024 //0x04,0x00
-#define  AUXI_HOLDRELAY_COUNT               37
+#define  AUXI_HOLDRELAY_COUNT               (31*8)
 
 #define  SPECIAL_RELAY_BASE     1536 //0x06,0x00
 #define  SPECIAL_RELAY_COUNT                1   //只有一位，复位标记继电器

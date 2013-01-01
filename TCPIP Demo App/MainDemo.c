@@ -323,7 +323,6 @@ int main(void)
 	//plc_code_test_init();
 
 	PlcInit();
-	//PLC内存 52起始地址,4096大小
 
     while(1)
     {
