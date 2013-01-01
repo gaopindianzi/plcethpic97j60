@@ -186,7 +186,7 @@ unsigned int read_multiple_register(unsigned char * buffer,unsigned int len)
 	modbus_ack * pack = (modbus_ack *)buffer;
 	unsigned int refnum,i;
 	unsigned int word_count;
-	WORD * pword = (WORD *)(pack->reg_base);
+	WORD * pword = (WORD *)&(pack->reg_base);
 	if(len < sizeof(modbus_head_t)) {
 		return 0;
 	}
