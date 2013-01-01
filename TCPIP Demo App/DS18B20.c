@@ -184,12 +184,12 @@ unsigned int Read_Temperature(void)
  */
 unsigned int ReadTemperatureXX_XC(void)
 {
-	unsigned int TP_temp;
+	unsigned long TP_temp;
 	Convert_T();
 	TP_temp = Read_Temperature();
 	TP_temp *= 100;
 	TP_temp /= 16;
-	return TP_temp;
+	return (unsigned int)TP_temp;
 }
 
  /***********************Initial DS18B20*********************************/
