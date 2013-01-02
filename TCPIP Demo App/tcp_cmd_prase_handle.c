@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include "tcp_cmd_prase_handle.h"
 #include "relay_cmd_definition.h"
@@ -17,8 +18,9 @@
 #include "DS18B20.h"
 #include "plc_prase.h"
 #include "compiler.h"
+#include "debug.h"
 
-#define THISINFO           0
+#define THISINFO           1
 #define THISERROR          0
 
 
@@ -645,7 +647,104 @@ unsigned int CmdPlcWrite(CmdHead * cmd,unsigned int len)
  *     输出一个整形，代表输出数据的长度，如果长度为0，则表示没有输出，
  *     如果长度大于0，则表示有数据输出，则底层数据必须返回此函数输出
  *     的数据。
+ * 添加字符串命令
+ * SCMD DIGW 0  12 10011101 
+ * SCMD DIGR 0  12 
  */
+
+
+char StringMatchHead(const char * des,ROM char * head)
+{
+	while(1) {
+		if(*des != *head) {
+			return 0;
+		}
+		des++;
+		head++;
+    if(*head == '\0') {
+			return 1;
+		}
+		if(*des == '\0') {
+			return 0;
+		}
+	}
+}
+
+unsigned char GetStringDiviseBy(const char * src,ROM char *ch,
+						  char * des,unsigned char len,unsigned char index)
+{
+	unsigned char k,i;
+	const char * pch;
+	if(*ch == '\0') {
+		return 0;
+	}
+	k = 0;
+	while(k<index) {
+		pch = ch;
+		while(1) {
+			if(*pch == '\0') {
+				break;
+			}
+			if(*src == *pch) {
+				k++;
+				break;
+			} else {
+				pch++;
+			}
+		}
+		if(*src == '\0') {
+			return 0;
+		}
+		src++;
+	}
+	k = 0;
+	while(1) {
+		if(*src == '\0') {
+			goto finish;
+		}
+		pch = ch;
+		while(1) {
+			if(*pch == '\0') {
+				break;
+			}
+			if(*src == *pch) {
+				goto finish;
+			}
+			pch++;
+		}
+		if(k<len) {
+			*des = *src;
+			des++;
+		}
+		++k;
+		src++;
+	}
+finish:	
+	i = k;
+	while(i<len) {
+		*des++ = '\0';
+		++i;
+	}
+	return k;
+}
+
+void digital_write(unsigned int io_num_base,char * binval,unsigned int num)
+{
+	unsigned int i;
+	for(i=0;i<num;i++) {
+		set_bitval(io_num_base+i,(binval[i]=='1')?1:0);
+	}
+}
+
+void digital_read(unsigned int io_num_base,char * binval,unsigned int num)
+{
+	unsigned int i;
+	for(i=0;i<num;i++) {
+		binval[i] = get_bitval(io_num_base+i)?'1':'0';
+	}
+	binval[i] = 0;
+}
+
 
 unsigned int CmdRxPrase(void * pdat,unsigned int len)
 {
@@ -657,6 +756,40 @@ unsigned int CmdRxPrase(void * pdat,unsigned int len)
     	if(len < sizeof(CmdHead)) { //小于规定的头大小
 	    	return 0;
 	    }
+	}
+	{
+		char strbuf[64];
+		char * pstr = (char *)pdat;
+		if(StringMatchHead(pstr,"SCMD")) { //相等时
+			//是字符串命令
+			if(THISINFO)putrsUART((ROM char *)"SCMD Get it\r\n");
+			GetStringDiviseBy(pstr," ",strbuf,sizeof(strbuf),1);
+			if(StringMatchHead(strbuf,"DIGW")) { //相等时
+				unsigned int dig_base,dig_num;
+				if(THISINFO)putrsUART((ROM char *)"DIGW Get it\r\n");
+				GetStringDiviseBy(pstr," ",strbuf,sizeof(strbuf),2);
+				dig_base = atoi(strbuf);
+				GetStringDiviseBy(pstr," ",strbuf,sizeof(strbuf),3);
+				dig_num = atoi(strbuf);
+				GetStringDiviseBy(pstr," ",strbuf,sizeof(strbuf),4);
+				digital_write(dig_base,strbuf,dig_num);
+				return len;
+			} else if(StringMatchHead(strbuf,"DIGR")) {
+				unsigned int dig_base,dig_num;
+				if(THISINFO)putrsUART((ROM char *)"DIGW Get it\r\n");
+				GetStringDiviseBy(pstr," ",strbuf,sizeof(strbuf),2);
+				dig_base = atoi(strbuf);
+				GetStringDiviseBy(pstr," ",strbuf,sizeof(strbuf),3);
+				dig_num = atoi(strbuf);
+				digital_read(dig_base,strbuf,dig_num);
+				strcpy(pstr,"SCMD DIGR ");
+				strcat(pstr,strbuf);
+				return strlen(pstr);
+			} else {
+				strcpy(pstr,"SCMD ERROR!");
+				return 11;
+			}
+		}
 	}
 	//满足我们的协议头大小
 	switch(rcmd->cmd)
