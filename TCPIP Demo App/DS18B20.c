@@ -180,7 +180,7 @@ unsigned int Read_Temperature(void)
 }
 
 /************************************************************************
- * 功能:  读取温度，精度是0.1摄氏度
+ * 功能:  读取温度，精度是0.01摄氏度
  */
 unsigned int ReadTemperatureXX_XC(void)
 {

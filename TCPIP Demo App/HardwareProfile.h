@@ -1346,10 +1346,15 @@
 	#define RTC_SDA_OUT			(LATG5)   //(LATGbits.LATG5)
 
 	//DS18B20 I/O pins		单总线温度传感器
+#if 0
 	#define Temp_DQ_TRIS	(TRISH5) //(TRISHbits.TRISH5)
 	#define Temp_DQ_IN		(RH5)    //(PORTHbits.RH5)
 	#define Temp_DQ_OUT		(LATH5)  //(LATHbits.LATH5)
-
+#else
+	#define Temp_DQ_TRIS	(TRISF6) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN		(RF6)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT		(LATF6)  //(LATHbits.LATH5)
+#endif
 
 
 	// ENC28J60 I/O pins
