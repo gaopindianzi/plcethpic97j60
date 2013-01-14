@@ -1,7 +1,7 @@
 #ifndef __BOARD_BSP_INFO_H__
 #define __BOARD_BSP_INFO_H__
 
-#include "baord_definition.h"
+#include "board_definition.h"
 
 
 #if   BARED_TYPE == BOARD_R7OUT_D9IN_1TMP
