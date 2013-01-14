@@ -1,9 +1,10 @@
 #ifndef __HAL_IO_INTERFACE_H__
 #define __HAL_IO_INTERFACE_H__
 
+//#include "board_bsp_info.h"
 
-#define REAL_IO_OUT_NUM          7
-#define REAL_IO_INPUT_NUM        9
+#define REAL_IO_OUT_NUM         7 //PHY_RELAY_OUT_NUM
+#define REAL_IO_INPUT_NUM       9// PHY_DIG_IN_NUM
 
 #define BITS_TO_BS(bit_num)    (((bit_num)+7)/8)
 
