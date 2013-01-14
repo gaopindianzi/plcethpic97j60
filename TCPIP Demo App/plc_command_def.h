@@ -61,6 +61,8 @@
 
 #define    PLC_JMP     44  //无条件跳转
 #define    PLC_JMPS    45  //条件真跳转
+#define    PLC_JMPU    46
+#define    PLC_JMPSU   47
 
 
 

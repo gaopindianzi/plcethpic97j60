@@ -396,27 +396,43 @@ const unsigned char plc_test_flash[512] =
 	PLC_OUT, 0x01,0x07,
 #endif
 
+#if 1
+	PLC_BCMPB, 20,0x20,8,0x02,50,
+	PLC_BCMPB, 20,0x20,10,0x02,51,
+	PLC_BCMPB, 20,0x20,12,0x02,52,
 
-#if 1  //简单测试
+	PLC_BCMPB, 25,0x20,8,0x02,53,
+	PLC_BCMPB, 25,0x20,10,0x02,54,
+	PLC_BCMPB, 25,0x20,12,0x02,55,
+
+	PLC_BCMPB, 30,0x20,8,0x02,56,
+	PLC_BCMPB, 30,0x20,10,0x02,57,
+	PLC_BCMPB, 30,0x20,12,0x02,58,
+
+	PLC_LD,0x02,50,
+	PLC_OR,0x02,51,
+	PLC_OR,0x02,52,
+	PLC_OUT,0x01,0x00,
+
+	PLC_LD,0x02,53,
+	PLC_OR,0x02,54,
+	PLC_OR,0x02,55,
+	PLC_OUT,0x01,0x01,
+
+	PLC_LD,0x02,56,
+	PLC_OR,0x02,57,
+	PLC_OR,0x02,58,
+	PLC_OUT,0x01,0x02,
+
+
+
+#endif
+
+#if 0  //简单测试
 	PLC_LDI,  0x06,0x00,
-	PLC_JMPS, 0x00,53,
+	PLC_JMPS, 0x00,12,
 
-	PLC_LD,  0x04,00,
-	PLC_OUT, 0x02,0,
-	PLC_LD,  0x04,01,
-	PLC_OUT, 0x02,1,
-	PLC_LD,  0x04,02,
-	PLC_OUT, 0x02,2,
-	PLC_LD,  0x04,03,
-	PLC_OUT, 0x02,3,
-	PLC_LD,  0x04,04,
-	PLC_OUT, 0x02,4,
-	PLC_LD,  0x04,05,
-	PLC_OUT, 0x02,5,
-	PLC_LD,  0x04,06,
-	PLC_OUT, 0x02,6,
-	PLC_LD,  0x04,07,
-	PLC_OUT, 0x02,7,
+	PLC_BMOV,0x02,0x00,0x04,0x00,0x00,8,
 
 	PLC_LDKL,
 	PLC_OUT, 0x06,0x00,
@@ -440,30 +456,9 @@ const unsigned char plc_test_flash[512] =
 	PLC_LDP, 0x00,0x07,
 	PLC_SEI, 0x02,0x07,
 
-	PLC_LD,  0x02,0x00,
-	PLC_OUT, 0x01,0x00,
-	PLC_OUT,  0x04,00,
-	PLC_LD,  0x02,0x01,
-	PLC_OUT, 0x01,0x01,
-	PLC_OUT,  0x04,01,
-	PLC_LD,  0x02,0x02,
-	PLC_OUT, 0x01,0x02,
-	PLC_OUT,  0x04,02,
-	PLC_LD,  0x02,0x03,
-	PLC_OUT, 0x01,0x03,
-	PLC_OUT,  0x04,03,
-	PLC_LD,  0x02,0x04,
-	PLC_OUT, 0x01,0x04,
-	PLC_OUT,  0x04,04,
-	PLC_LD,  0x02,0x05,
-	PLC_OUT, 0x01,0x05,
-	PLC_OUT,  0x04,05,
-	PLC_LD,  0x02,0x06,
-	PLC_OUT, 0x01,0x06,
-	PLC_OUT,  0x04,06,
-	PLC_LD,  0x02,0x07,
-	PLC_OUT, 0x01,0x07,
-	PLC_OUT,  0x04,07,
+	PLC_BMOV,0x01,0x00,0x02,0x00,0x00,8,
+	PLC_BMOV,0x04,0x00,0x02,0x00,0x00,8,
+
 #endif
 	PLC_END
 };
@@ -1416,11 +1411,55 @@ void handle_plc_jmp(void)
 	plc_command_index += sizeof(plc_command);
 }
 
+/**********************************************
+ * 位复制指令，一次性复制连续的多个位变量，或者说继电器或者辅助继电器
+ */
+void handle_plc_bmov(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char des_base_hi;
+		unsigned char des_base_lo;
+		unsigned char src_base_hi;
+		unsigned char src_base_lo;
+		unsigned char bit_count_hi;
+		unsigned char bit_count_lo;
+	} plc_command;
+	plc_command * plc = (plc_command *)plc_command_array;
+	unsigned int des,src,count,i;
+	des   = HSB_BYTES_TO_WORD(&plc->des_base_hi);
+	src   = HSB_BYTES_TO_WORD(&plc->src_base_hi);
+	count = HSB_BYTES_TO_WORD(&plc->bit_count_hi);
+	for(i=0;i<count;i++) {
+		set_bitval(des+i,get_bitval(src+i));
+	}
+	plc_command_index += sizeof(plc_command);
+}
 
 
-
-
-
+void handle_plc_wmov(void)
+{
+	typedef struct _plc_command
+	{
+		unsigned char cmd;
+		unsigned char des_base_hi;
+		unsigned char des_base_lo;
+		unsigned char src_base_hi;
+		unsigned char src_base_lo;
+		unsigned char bit_count_hi;
+		unsigned char bit_count_lo;
+	} plc_command;
+	plc_command * plc = (plc_command *)plc_command_array;
+	unsigned int des,src,count,i;
+	des   = HSB_BYTES_TO_WORD(&plc->des_base_hi);
+	src   = HSB_BYTES_TO_WORD(&plc->src_base_hi);
+	count = HSB_BYTES_TO_WORD(&plc->bit_count_hi);
+	for(i=0;i<count;i++) {
+		set_word_val(des+i,get_word_val(src+i));
+	}
+	plc_command_index += sizeof(plc_command);
+}
 
 /**********************************************
  * 通信位指令处理程序
@@ -1638,9 +1677,12 @@ void PlcProcess(void)
 	case PLC_JMPS:
 		handle_plc_jmp();
 		break;
-    case PLC_NETWB:
-    case PLC_NETRW:
-    case PLC_NETWW:
+	case PLC_BMOV:
+		handle_plc_bmov();
+		break;
+	case PLC_MOV:
+		handle_plc_wmov();
+		break;
 	default:
 	    handle_plc_command_error();
 		goto plc_command_finished;
