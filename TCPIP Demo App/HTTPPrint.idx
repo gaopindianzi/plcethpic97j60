@@ -66,4 +66,12 @@ relay_get(1,FALSE)
 +RelaySelected(7,TRUE)
 +RelaySelected(7,FALSE)
 current_temp
-+currenttemp
+currenttemp
++temperature(1)
++temperature(2)
++temperature(3)
++temperature(4)
++temperature(5)
++temperature(6)
++temperature(7)
++temperature(0)

@@ -121,10 +121,14 @@ void sys_time_tick_init(void)
 void plc_rtc_tick_process(void)
 {
 	//读时间进来
-	unsigned int TP_temp = ReadTemperatureXX_XC();
+	unsigned int TP_temp;
 	DS1302_VAL tval;
-	temp_reg[1] = TP_temp / 100;  //度
-	temp_reg[0] = TP_temp % 100;  //小数度
+	unsigned char i;
+	for(i=0;i<PHY_TMP_IN_NUM;i++) {
+	    TP_temp = ReadTemperatureChannel(i);
+	    temp_reg[i*2+1] = TP_temp / 100;  //度
+	    temp_reg[i*2]   = TP_temp % 100;  //小数度
+	}
 	ReadRTC(&tval);
 	BCD2Hex(&tval,sizeof(tval));
 	//以下按照从小到大排序，分别为：秒，分，时，日，月，年，最后是星期

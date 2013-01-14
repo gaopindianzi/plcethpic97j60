@@ -44,7 +44,7 @@ void HTTPPrint_reboot(void);
 void HTTPPrint_rebootaddr(void);
 void HTTPPrint_ddns_service(WORD);
 void HTTPPrint_RelaySelected(WORD,WORD);
-void HTTPPrint_currenttemp(void);
+void HTTPPrint_temperature(WORD);
 
 void HTTPPrint(DWORD callbackID)
 {
@@ -206,8 +206,29 @@ void HTTPPrint(DWORD callbackID)
         case 0x00000042:
 			HTTPPrint_RelaySelected(7,FALSE);
 			break;
-        case 0x00000044:
-			HTTPPrint_currenttemp();
+        case 0x00000045:
+			HTTPPrint_temperature(1);
+			break;
+        case 0x00000046:
+			HTTPPrint_temperature(2);
+			break;
+        case 0x00000047:
+			HTTPPrint_temperature(3);
+			break;
+        case 0x00000048:
+			HTTPPrint_temperature(4);
+			break;
+        case 0x00000049:
+			HTTPPrint_temperature(5);
+			break;
+        case 0x0000004a:
+			HTTPPrint_temperature(6);
+			break;
+        case 0x0000004b:
+			HTTPPrint_temperature(7);
+			break;
+        case 0x0000004c:
+			HTTPPrint_temperature(0);
 			break;
 		default:
 			// Output notification for undefined values

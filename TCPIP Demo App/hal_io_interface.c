@@ -315,6 +315,10 @@ unsigned int write_plc_programer(unsigned int index,unsigned char * buffer,unsig
  * ÎÂ¶ÈÍ¨µÀ
  */
 
+#define DQ_OUT				0
+#define DQ_IN				1
+
+
 static unsigned char temp_channel = 0;
 
 void set_temp_channel(unsigned char index)
@@ -326,6 +330,32 @@ void set_temp_io_high(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		Temp_DQ_OUT = 1;
+		break;
+	case 1:
+		Temp_DQ_OUT1 = 1;
+		break;
+	case 2:
+		Temp_DQ_OUT2 = 1;
+		break;
+	case 3:
+		Temp_DQ_OUT3 = 1;
+		break;
+	case 4:
+		Temp_DQ_OUT4 = 1;
+		break;
+	case 5:
+		Temp_DQ_OUT5 = 1;
+		break;
+	case 6:
+		Temp_DQ_OUT6 = 1;
+		break;
+	case 7:
+		Temp_DQ_OUT7 = 1;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -333,6 +363,32 @@ void set_temp_io_low(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		Temp_DQ_OUT = 0;
+		break;
+	case 1:
+		Temp_DQ_OUT1 = 0;
+		break;
+	case 2:
+		Temp_DQ_OUT2 = 0;
+		break;
+	case 3:
+		Temp_DQ_OUT3 = 0;
+		break;
+	case 4:
+		Temp_DQ_OUT4 = 0;
+		break;
+	case 5:
+		Temp_DQ_OUT5 = 0;
+		break;
+	case 6:
+		Temp_DQ_OUT6 = 0;
+		break;
+	case 7:
+		Temp_DQ_OUT7 = 0;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -341,12 +397,64 @@ void set_temp_io_dir_in(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		Temp_DQ_TRIS = DQ_IN;
+		break;
+	case 1:
+		Temp_DQ_TRIS1 = DQ_IN;
+		break;
+	case 2:
+		Temp_DQ_TRIS2 = DQ_IN;
+		break;
+	case 3:
+		Temp_DQ_TRIS3 = DQ_IN;
+		break;
+	case 4:
+		Temp_DQ_TRIS4 = DQ_IN;
+		break;
+	case 5:
+		Temp_DQ_TRIS5 = DQ_IN;
+		break;
+	case 6:
+		Temp_DQ_TRIS6 = DQ_IN;
+		break;
+	case 7:
+		Temp_DQ_TRIS7 = DQ_IN;
+		break;
+	default:
+		break;
 	}
 }
 void set_temp_io_dir_out(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		Temp_DQ_TRIS = DQ_OUT;
+		break;
+	case 1:
+		Temp_DQ_TRIS1 = DQ_OUT;
+		break;
+	case 2:
+		Temp_DQ_TRIS2 = DQ_OUT;
+		break;
+	case 3:
+		Temp_DQ_TRIS3 = DQ_OUT;
+		break;
+	case 4:
+		Temp_DQ_TRIS4 = DQ_OUT;
+		break;
+	case 5:
+		Temp_DQ_TRIS5 = DQ_OUT;
+		break;
+	case 6:
+		Temp_DQ_TRIS6 = DQ_OUT;
+		break;
+	case 7:
+		Temp_DQ_TRIS7 = DQ_OUT;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -354,18 +462,88 @@ void set_temp_io_in_low(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		Temp_DQ_IN = 0;
+		break;
+	case 1:
+		Temp_DQ_IN1 = 0;
+		break;
+	case 2:
+		Temp_DQ_IN2 = 0;
+		break;
+	case 3:
+		Temp_DQ_IN3 = 0;
+		break;
+	case 4:
+		Temp_DQ_IN4 = 0;
+		break;
+	case 5:
+		Temp_DQ_IN5 = 0;
+		break;
+	case 6:
+		Temp_DQ_IN6 = 0;
+		break;
+	case 7:
+		Temp_DQ_IN7 = 0;
+		break;
+	default:
+		break;
 	}
 }
 void set_temp_io_in_high(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		Temp_DQ_IN = 1;
+		break;
+	case 1:
+		Temp_DQ_IN1 = 1;
+		break;
+	case 2:
+		Temp_DQ_IN2 = 1;
+		break;
+	case 3:
+		Temp_DQ_IN3 = 1;
+		break;
+	case 4:
+		Temp_DQ_IN4 = 1;
+		break;
+	case 5:
+		Temp_DQ_IN5 = 1;
+		break;
+	case 6:
+		Temp_DQ_IN6 = 1;
+		break;
+	case 7:
+		Temp_DQ_IN7 = 1;
+		break;
+	default:
+		break;
 	}
 }
 unsigned char get_temp_io_val(void)
 {
 	switch(temp_channel)
 	{
+	case 0:
+		return Temp_DQ_IN;
+	case 1:
+		return Temp_DQ_IN1;
+	case 2:
+		return Temp_DQ_IN2;
+	case 3:
+		return Temp_DQ_IN3;
+	case 4:
+		return Temp_DQ_IN4;
+	case 5:
+		return Temp_DQ_IN5;
+	case 6:
+		return Temp_DQ_IN6;
+	case 7:
+		return Temp_DQ_IN7;
+	default:
+		return 1;
 	}
 	return 1;
 }

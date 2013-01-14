@@ -35,6 +35,7 @@ void Skip_Rom(void);
 void Read_scratchPad(uchar *buffer);
 void Write_scratchPad(void);
 void Convert_T(void);
+unsigned int ReadTemperatureChannel(unsigned char index);
 
 /*********************
  * 读出来的温度是正常温度的16倍

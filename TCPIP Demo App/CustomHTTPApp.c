@@ -1380,21 +1380,18 @@ void HTTPPrint_version(void)
 	TCPPutROMString(sktHTTP, (ROM void*)VERSION);
 }
 
-void HTTPPrint_currenttemp(void)
+void HTTPPrint_temperature(WORD index)
 {
 	char chr[8];
 	unsigned int t;
-	unsigned int tmp = ReadTemperatureXX_XC();
-	t = tmp / 100; //得到度数
+	t =get_word_val(REG_TEMP_BASE+index*2+1);  //得到度数
 	uitoa(t,chr);
 	TCPPutString(sktHTTP,chr);
 	TCPPut(sktHTTP, '.');
-	t = tmp % 100; //得到小数点
+	t = get_word_val(REG_TEMP_BASE+index*2);; //得到小数点
 	uitoa(t,chr);
 	TCPPutString(sktHTTP,chr);
 }
-
-
 
 
 ROM BYTE HTML_UP_ARROW[] = "up";

@@ -56,12 +56,12 @@ uchar Bus_reset(void)
 uchar Read_bit(void)
 {
 	uchar bit_value;
-	Temp_DQ_OUT = 0;
-	Temp_DQ_TRIS = DQ_OUT;
+	set_temp_io_low(); //Temp_DQ_OUT = 0;
+	set_temp_io_dir_out(); //Temp_DQ_TRIS = DQ_OUT;
 	delay(13);				// delay 0~15us
-	Temp_DQ_IN = 1;
-	Temp_DQ_TRIS = DQ_IN;
-	bit_value = Temp_DQ_IN;
+	set_temp_io_in_high(); //Temp_DQ_IN = 1;
+	set_temp_io_dir_in(); //Temp_DQ_TRIS = DQ_IN;
+	bit_value = get_temp_io_val(); //Temp_DQ_IN;
 	delay(72);				//delay 55us
 	return bit_value;
 }
@@ -69,13 +69,13 @@ uchar Read_bit(void)
 /********************Write one bit*************************/
 void Write_bit(uchar bit_value)
 {
-	Temp_DQ_OUT = 0;
-	Temp_DQ_TRIS = DQ_OUT;
+	set_temp_io_low(); //Temp_DQ_OUT = 0;
+	set_temp_io_dir_out(); //Temp_DQ_TRIS = DQ_OUT;
 	delay(13);
 	if(bit_value ==	1)
-	Temp_DQ_OUT = 1;
+	    set_temp_io_high(); //Temp_DQ_OUT = 1;
 	delay(72);				//delay 58us
-	Temp_DQ_TRIS = DQ_IN;
+	set_temp_io_dir_in(); //Temp_DQ_TRIS = DQ_IN;
 }
 
 /********************Read one byte*******/
@@ -200,8 +200,8 @@ unsigned int ReadTemperatureChannel(unsigned char index)
 {
 	unsigned long TP_temp;
 	set_temp_channel(index);
-	Convert_T();
 	TP_temp = Read_Temperature();
+	Convert_T();
 	TP_temp *= 100;
 	TP_temp /= 16;
 	return (unsigned int)TP_temp;
@@ -210,16 +210,16 @@ unsigned int ReadTemperatureChannel(unsigned char index)
  /***********************Initial DS18B20*********************************/
 void DS18B20_Init(void)
 {
-	uchar i;
-
-	set_temp_channel(0);
-
-	i = 2;
-	while(Bus_reset() && (i > 0))
-		i--;
-//	Read_ROMID();
-	Write_scratchPad();
-	Convert_T();
+	unsigned char i,j;
+	for(i=0;i<PHY_TMP_IN_NUM;i++) {
+	    set_temp_channel(i);
+        j = 2;
+	    while(Bus_reset() && (j > 0))
+		  j--;
+        //	Read_ROMID();
+	    Write_scratchPad();
+	    Convert_T();
+	}
 }
 
 #endif

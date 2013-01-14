@@ -1258,6 +1258,8 @@
 	#define BAUDCONbits			(*((BAUDCONbits*)&BAUDCON1))
 
 #if 1
+
+#include "board_bsp_info.h"
 	// * lzf * changed ...
 	extern unsigned char led_reg;
 	// I/O pins
@@ -1348,14 +1350,45 @@
 	#define RTC_SDA_OUT			(LATG5)   //(LATGbits.LATG5)
 
 	//DS18B20 I/O pins		单总线温度传感器
-#if 0
+
+#if   BARED_TYPE == BOARD_R7OUT_D9IN_1TMP
 	#define Temp_DQ_TRIS	(TRISH5) //(TRISHbits.TRISH5)
 	#define Temp_DQ_IN		(RH5)    //(PORTHbits.RH5)
 	#define Temp_DQ_OUT		(LATH5)  //(LATHbits.LATH5)
-#else
+#endif
+
+#if   BARED_TYPE == BOARD_R8OUT_D8IN_8TMP
 	#define Temp_DQ_TRIS	(TRISF6) //(TRISHbits.TRISH5)
 	#define Temp_DQ_IN		(RF6)    //(PORTHbits.RH5)
 	#define Temp_DQ_OUT		(LATF6)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS1	(TRISF5) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN1		(RF5)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT1	(LATF5)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS2	(TRISF4) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN2		(RF4)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT2	(LATF4)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS3	(TRISF3) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN3		(RF3)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT3	(LATF3)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS4	(TRISF2) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN4		(RF2)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT4	(LATF2)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS5	(TRISH7) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN5		(RH7)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT5	(LATH7)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS6	(TRISH6) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN6		(RH6)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT6	(LATH6)  //(LATHbits.LATH5)
+
+	#define Temp_DQ_TRIS7	(TRISH5) //(TRISHbits.TRISH5)
+	#define Temp_DQ_IN7		(RH5)    //(PORTHbits.RH5)
+	#define Temp_DQ_OUT7	(LATH5)  //(LATHbits.LATH5)
 #endif
 
 
