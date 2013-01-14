@@ -1317,6 +1317,8 @@
     #define  RELAY_OUT_5            (LATB1)
     #define  RELAY_OUT_TRIS_6       (TRISB2)
     #define  RELAY_OUT_6            (LATB2)
+    #define  RELAY_OUT_TRIS_7       (TRISB3)
+    #define  RELAY_OUT_7            (LATB3)
 	// ‰»Î≤ø∑÷
     #define  DIG_INPUT_TRIS_0       (TRISE5)
     #define  DIG_INPUT_IO_0         (RE5)

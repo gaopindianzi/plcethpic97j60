@@ -164,6 +164,7 @@ unsigned int phy_io_out_set_bits(unsigned int startbits,unsigned char * iobits,u
 		}
 		index++;
 	}
+#if   BARED_TYPE == BOARD_R7OUT_D9IN_1TMP
 	//设置IO口
 	RELAY_OUT_0 = (io_out[0]&0x01)?0:1;
 	RELAY_OUT_1 = (io_out[0]&0x02)?0:1;
@@ -172,7 +173,18 @@ unsigned int phy_io_out_set_bits(unsigned int startbits,unsigned char * iobits,u
 	RELAY_OUT_4 = (io_out[0]&0x10)?0:1;
 	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
 	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
-
+#endif
+#if   BARED_TYPE == BOARD_R8OUT_D8IN_8TMP
+	//设置IO口
+	RELAY_OUT_0 = (io_out[0]&0x01)?0:1;
+	RELAY_OUT_1 = (io_out[0]&0x02)?0:1;
+	RELAY_OUT_2 = (io_out[0]&0x04)?0:1;
+	RELAY_OUT_3 = (io_out[0]&0x08)?0:1;
+	RELAY_OUT_4 = (io_out[0]&0x10)?0:1;
+	RELAY_OUT_5 = (io_out[0]&0x20)?0:1;
+	RELAY_OUT_6 = (io_out[0]&0x40)?0:1;
+	RELAY_OUT_7 = (io_out[0]&0x80)?0:1;
+#endif
 	//RtcRamWrite(0,io_out,sizeof(io_out));
 	//返回
 	return bitcount;

@@ -563,6 +563,7 @@ static void InitializeBoard(void)
 	RELAY_OUT_4 = 1;
 	RELAY_OUT_5 = 1;
 	RELAY_OUT_6 = 1;
+	RELAY_OUT_7 = 1;
 	RELAY_OUT_TRIS_0 = 0;
 	RELAY_OUT_TRIS_1 = 0;
 	RELAY_OUT_TRIS_2 = 0;
@@ -570,6 +571,7 @@ static void InitializeBoard(void)
 	RELAY_OUT_TRIS_4 = 0;
 	RELAY_OUT_TRIS_5 = 0;
 	RELAY_OUT_TRIS_6 = 0;
+	RELAY_OUT_TRIS_7 = 0;
 	// ‰»Î
 	DIG_INPUT_TRIS_0 = 1;
 	DIG_INPUT_TRIS_1 = 1;
