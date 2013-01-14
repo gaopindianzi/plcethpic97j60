@@ -1,11 +1,13 @@
 #ifndef __PLC_PRASE_H__
 #define __PLC_PRASE_H__
 
+#include "board_bsp_info.h"
+
 //--------------------------地址编号-------数量-----------
 #define  IO_INPUT_BASE          0
-#define  IO_INPUT_COUNT                     9
+#define  IO_INPUT_COUNT                     PHY_DIG_IN_NUM
 #define  IO_OUTPUT_BASE         256  //0x01,0x00
-#define  IO_OUTPUT_COUNT                    7
+#define  IO_OUTPUT_COUNT                    PHY_RELAY_OUT_NUM
 #define  AUXI_RELAY_BASE        512  //0x02,0x00
 #define  AUXI_RELAY_COUNT                   100
 #define  AUXI_HOLDRELAY_BASE    1024 //0x04,0x00
@@ -29,7 +31,7 @@
 #define  REG_RTC_BASE            0x2000  //8192
 #define  REG_RTC_COUNT                      7    //年月日，时分秒，星期
 #define  REG_TEMP_BASE           0x2007  //8199
-#define  REG_TEMP_COUNT                     2    //温度高地位
+#define  REG_TEMP_COUNT                     (PHY_TMP_IN_NUM*2)    //一个温度占用两个字节
 
 //http://192.168.1.223/mpfsupload
 
