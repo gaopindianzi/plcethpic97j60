@@ -24,10 +24,10 @@
 
 #define  COUNTER_EVENT_BASE      4096  //0x10,0x00
 #define  COUNTER_EVENT_COUNT                24
-//字节变量
+//字节变量，这里MODBUS协议的寄存器读写，都是2字节合并为一个字
 #define  REG_BASE                0
 #define  REG_COUNT                          128
-//时间地址
+//时间地址，这里开始MODBUS协议的寄存器读写，一个字节就认为是一个字
 #define  REG_RTC_BASE            0x2000  //8192
 #define  REG_RTC_COUNT                      7    //年月日，时分秒，星期
 #define  REG_TEMP_BASE           0x2007  //8199
