@@ -308,3 +308,65 @@ unsigned int write_plc_programer(unsigned int index,unsigned char * buffer,unsig
 	XEEEndWrite();
 	return len;
 }
+
+
+
+/********************************************************
+ * ÎÂ¶ÈÍ¨µÀ
+ */
+
+static unsigned char temp_channel = 0;
+
+void set_temp_channel(unsigned char index)
+{
+	temp_channel = index;
+}
+
+void set_temp_io_high(void)
+{
+	switch(temp_channel)
+	{
+	}
+}
+
+void set_temp_io_low(void)
+{
+	switch(temp_channel)
+	{
+	}
+}
+
+
+void set_temp_io_dir_in(void)
+{
+	switch(temp_channel)
+	{
+	}
+}
+void set_temp_io_dir_out(void)
+{
+	switch(temp_channel)
+	{
+	}
+}
+
+void set_temp_io_in_low(void)
+{
+	switch(temp_channel)
+	{
+	}
+}
+void set_temp_io_in_high(void)
+{
+	switch(temp_channel)
+	{
+	}
+}
+unsigned char get_temp_io_val(void)
+{
+	switch(temp_channel)
+	{
+	}
+	return 1;
+}
+
