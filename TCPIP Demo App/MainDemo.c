@@ -97,6 +97,7 @@
 #include "hal_io_interface.h"
 #include "plc_prase.h"
 #include "UART1TCPBridge.h"
+#include "UART2TCPBridge.h"
 #include "serial_comm_packeter.h"
 #include "modbus_imp.h"
 #include "debug.h"
@@ -144,7 +145,7 @@ static void ProcessIO(void);
 	void HighISR(void)
 	#endif
 	{
-	    #if defined(STACK_USE_UART2TCP_BRIDGE)
+	    #if defined(STACK_USE_UART2TCP_BRIDGE2)
 		UART2TCPBridgeISR();
 		#endif
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
@@ -387,6 +388,12 @@ int main(void)
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
 	    UART1TCPBridgeTask(); //502端口之用
 	    #endif
+
+	    #if defined(STACK_USE_UART1TCP_BRIDGE)
+	    UART2TCPBridgeTask(); //自定义串口转换
+	    #endif
+
+		
 
 
 #ifdef STACK_USE_RUNING_RST
