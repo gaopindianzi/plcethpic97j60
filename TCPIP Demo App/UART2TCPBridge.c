@@ -11,7 +11,7 @@
 #define   THISERROR        0
 
 #define UART1TCPBRIDGE_PORT	   506
-#define BAUD_RATE		       (9600)
+#define BAUD_RATE		       (115200U)
 
 
 #if defined(STACK_USE_UART2TCP_BRIDGE2)
@@ -56,8 +56,6 @@ void UART2TCPBridgeInit2(void)
 
 	putrsUART((ROM char*)"\r\n IN UART2TCPBridgeInit()");
 
-	return ;
-
     TXSTA2 = 0x20;
     RCSTA2 = 0x90;
 
@@ -86,7 +84,8 @@ void UART2TCPBridgeInit2(void)
 		// See if we can use the high baud (Fosc/16) 8-bit rate setting
 		#if ((GetPeripheralClock()+2*BAUD_RATE)/BAUD_RATE/4 - 1) <= 255
 			SPBRG2 = (GetPeripheralClock()+2*BAUD_RATE)/BAUD_RATE/4 - 1;
-			TXSTA2bits.BRGH = 1;
+			//TXSTA2bits.BRGH = 1;
+			BRGH2 = 1;
 		#else	// Use the low baud rate 8-bit setting
 			SPBRG2 = (GetPeripheralClock()+8*BAUD_RATE)/BAUD_RATE/16 - 1;
 		#endif
@@ -95,6 +94,9 @@ void UART2TCPBridgeInit2(void)
 	// Use high priority interrupt
 	//IPR1bits.TXIP = 1;
 	TX2IP = 1;
+
+	RC2IE = 1;
+
 }
 
 
@@ -293,7 +295,6 @@ void UART2TCPBridgeISR2(void)
 {
 	// NOTE: All local variables used here should be declared static
 	static BYTE i;
-	static unsigned int s;
 
 	// Store a received byte, if pending, if possible
 	if(RC2IF && RC2IE) //PIR1bits.RCIF && PIE1bits.RCIE)
@@ -305,8 +306,9 @@ void UART2TCPBridgeISR2(void)
 		//PIR1bits.RCIF = 0;
 		RC2IF = 0;
 
-		pack_prase_in(i);
+		//pack_prase_in(i);
 
+		RUN_LED_IO = !RUN_LED_IO;
 	}
 
 	// Transmit a byte, if pending, if possible

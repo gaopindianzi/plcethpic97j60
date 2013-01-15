@@ -383,7 +383,7 @@ int main(void)
         #endif
 
 		DiscoverTask();
-		TaskLedFlash();
+		//TaskLedFlash();
 
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
 	    UART1TCPBridgeTask(); //502端口之用
@@ -561,6 +561,8 @@ static void InitializeBoard(void)
 	RUN_LED_IO = 1;
 	
 	IP_CONFIG_TRIS = 1;  //输入口
+	TX2_TRIS = 0;
+	RX2_TRIS = 1;
 
 	//RELAY初始化
 	RELAY_OUT_0 = 1;
