@@ -98,7 +98,7 @@ void serial_rx_tx_initialize(void)
 	for(i=0;i<TX_PACKS_MAX_NUM;i++) {
         tx_ctl.packet[i].finished = 0;
 	}
-	rx_timeout_max = TICK_SECOND;
+	rx_timeout_max = TICK_SECOND / 20;
 }
 
 
@@ -210,37 +210,10 @@ DATA_TX_PACKET_T * prase_in_buffer(unsigned char * src,unsigned int len)
 	 if((ptx = find_next_empty_tx_buffer()) == NULL) {
 		 return NULL;
 	 }
-	 if(1) {
-		 unsigned int crc = CRC162(src,len);
-		 ptx->index = 0;
-		 ptx->buffer[ptx->index++] = STREAM_START;
-		 while(len--) {
-			 unsigned char reg = src[i++];
-			 if(ptx->index >= (sizeof(ptx->buffer) - 4)) {
-				 //溢出判断,2字节CRC，一个结束位,一个转义字符
-				 ptx->index = 0;
-				 break;
-			 }
-			 if(reg == STREAM_START) {
-				 ptx->buffer[ptx->index++] = STREAM_ESCAPE;
-				 ptx->buffer[ptx->index++] = STREAM_ES_S;
-		     } else if(reg == STREAM_ESCAPE) {
-				 ptx->buffer[ptx->index++] = STREAM_ESCAPE;
-				 ptx->buffer[ptx->index++] = STREAM_ESCAPE;
-			 } else if(reg == STREAM_END) {
-				 ptx->buffer[ptx->index++] = STREAM_ESCAPE;
-				 ptx->buffer[ptx->index++] = STREAM_ES_E;
-			 } else {
-				 ptx->buffer[ptx->index++] = reg;
-			 }
-		 }
-		 if(ptx->index > 0) {
-		     ptx->buffer[ptx->index++] = crc & 0xFF;
-		     ptx->buffer[ptx->index++] = crc >> 8;
-		     ptx->buffer[ptx->index++] = STREAM_END;
-		     ptx->finished = 1;
-		 }
-	 }
+	 len = (len > sizeof(ptx->buffer))?sizeof(ptx->buffer):len;
+	 memcpy(ptx->buffer,src,len);
+	 ptx->index = len;
+	 ptx->finished = 1;
 	 return ptx;
 }
 

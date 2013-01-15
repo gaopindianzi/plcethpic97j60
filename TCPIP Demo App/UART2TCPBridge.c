@@ -11,7 +11,7 @@
 #define   THISERROR        0
 
 #define UART1TCPBRIDGE_PORT	   506
-#define BAUD_RATE		       (115200U)
+#define BAUD_RATE		       (9600)
 
 
 #if defined(STACK_USE_UART2TCP_BRIDGE2)
@@ -234,13 +234,9 @@ void UART2TCPBridgeTask2(void)
 			if(wMaxGet > 0) {
 				DATA_TX_PACKET_T * ptx = find_next_empty_tx_buffer();
 				if(ptx != NULL) {
-					wMaxGet = (wMaxGet > (PACK_MAX_RX_SIZE-3))?(PACK_MAX_RX_SIZE-3):wMaxGet;
-				    TCPGetArray(MySocket,(BYTE *)&buffer[3],wMaxGet);
-				    //存私有数据
-				    buffer[0] = 502 >> 8;
-				    buffer[1] = 502 & 0xFF;
-				    buffer[2] = 0;
-				    ptx = prase_in_buffer(buffer,wMaxGet+3);
+					wMaxGet = (wMaxGet > PACK_MAX_RX_SIZE)?PACK_MAX_RX_SIZE:wMaxGet;
+				    TCPGetArray(MySocket,(BYTE *)&buffer[0],wMaxGet);
+				    ptx = prase_in_buffer(buffer,wMaxGet);
 				    if(ptx != NULL) {
 					    if(ptx->index > 0) {
 						    //启动发送
@@ -250,8 +246,6 @@ void UART2TCPBridgeTask2(void)
 				    }
 				}
 			} else {
-				//收到的数据太长了，丢掉它,以减轻PLC的计算和判断工作量
-				//清空SOCKET数据内存
 				TCPDiscard(MySocket);
 			}
 			break;
