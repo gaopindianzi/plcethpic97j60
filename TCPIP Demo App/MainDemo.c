@@ -146,7 +146,7 @@ static void ProcessIO(void);
 	#endif
 	{
 	    #if defined(STACK_USE_UART2TCP_BRIDGE2)
-		UART2TCPBridgeISR();
+		UART2TCPBridgeISR2();
 		#endif
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
 		UART1TCPBridgeISR();
@@ -295,9 +295,9 @@ int main(void)
 	// Initialize any application-specific modules or functions/
 	// For this demo application, this only includes the
 	// UART 2 TCP Bridge
-	#if defined(STACK_USE_UART2TCP_BRIDGE)
+	#if defined(STACK_USE_UART2TCP_BRIDGE2)
 	putrsUART((ROM char*)"\r\n UART2TCPBridgeInit.");
-	UART2TCPBridgeInit();
+	UART2TCPBridgeInit2();
 	#endif
 
 
@@ -389,8 +389,8 @@ int main(void)
 	    UART1TCPBridgeTask(); //502端口之用
 	    #endif
 
-	    #if defined(STACK_USE_UART1TCP_BRIDGE)
-	    UART2TCPBridgeTask(); //自定义串口转换
+	    #if defined(STACK_USE_UART2TCP_BRIDGE2)
+	    UART2TCPBridgeTask2(); //自定义串口转换
 	    #endif
 
 		

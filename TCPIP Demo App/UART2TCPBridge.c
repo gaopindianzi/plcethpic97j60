@@ -50,12 +50,19 @@ static unsigned int       tx_index;
  *
  * Note:            Uses interrupts
  ********************************************************************/
-void UART2TCPBridgeInit(void)
+void UART2TCPBridgeInit2(void)
 {
 	// Initilize UART
 
-    TXSTA = 0x20;
-    RCSTA = 0x90;
+	putrsUART((ROM char*)"\r\n IN UART2TCPBridgeInit()");
+
+	return ;
+
+    TXSTA2 = 0x20;
+    RCSTA2 = 0x90;
+
+
+
 
 	#define CLOSEST_SPBRG_VALUE ((GetPeripheralClock()+2ul*BAUD_RATE)/BAUD_RATE/4-1)
 	#define BAUD_ACTUAL (GetPeripheralClock()/(CLOSEST_SPBRG_VALUE+1))
@@ -64,26 +71,30 @@ void UART2TCPBridgeInit(void)
 	#else
 		#define BAUD_ERROR (BAUD_RATE-BAUD_ACTUAL)
 	#endif
+
+
 	#define BAUD_ERROR_PRECENT	((BAUD_ERROR*100+BAUD_RATE/2)/BAUD_RATE)
 	#if BAUD_ERROR_PRECENT > 2
 		// Use high speed (Fosc/4) 16-bit baud rate generator
-		BAUDCONbits.BRG16 = 1;
-		TXSTAbits.BRGH = 1;
-		SPBRGH = ((GetPeripheralClock()+BAUD_RATE/2)/BAUD_RATE-1)>>8 & 0xFF;
-		SPBRG = ((GetPeripheralClock()+BAUD_RATE/2)/BAUD_RATE-1) & 0xFF;
+		//BAUDCONbits.BRG16 = 1;
+		BRG162 = 1;
+		//TXSTA2bits.BRGH = 1;
+		BRGH2 = 1;
+		SPBRGH2 = ((GetPeripheralClock()+BAUD_RATE/2)/BAUD_RATE-1)>>8 & 0xFF;
+		SPBRG2 = ((GetPeripheralClock()+BAUD_RATE/2)/BAUD_RATE-1) & 0xFF;
 	#else
 		// See if we can use the high baud (Fosc/16) 8-bit rate setting
 		#if ((GetPeripheralClock()+2*BAUD_RATE)/BAUD_RATE/4 - 1) <= 255
-			SPBRG = (GetPeripheralClock()+2*BAUD_RATE)/BAUD_RATE/4 - 1;
-			TXSTAbits.BRGH = 1;
+			SPBRG2 = (GetPeripheralClock()+2*BAUD_RATE)/BAUD_RATE/4 - 1;
+			TXSTA2bits.BRGH = 1;
 		#else	// Use the low baud rate 8-bit setting
-			SPBRG = (GetPeripheralClock()+8*BAUD_RATE)/BAUD_RATE/16 - 1;
+			SPBRG2 = (GetPeripheralClock()+8*BAUD_RATE)/BAUD_RATE/16 - 1;
 		#endif
 	#endif
 	
 	// Use high priority interrupt
-	IPR1bits.TXIP = 1;
-
+	//IPR1bits.TXIP = 1;
+	TX2IP = 1;
 }
 
 
@@ -102,7 +113,7 @@ void UART2TCPBridgeInit(void)
  *
  * Note:            None
  ********************************************************************/
-void UART2TCPBridgeTask(void)
+void UART2TCPBridgeTask2(void)
 {
 	static enum _BridgeState
 	{
@@ -122,13 +133,13 @@ void UART2TCPBridgeTask(void)
 	default:
 		case SM_HOME:
 
-			//RELAY_OUT_0 = 0;
+			putrsUART((ROM char*)"\r\n IN UART2TCPBridgeTask() home");
 
 			#if defined(USE_REMOTE_TCP_SERVER)
 				// Connect a socket to the remote TCP server
-				MySocket = TCPOpen((DWORD)USE_REMOTE_TCP_SERVER, TCP_OPEN_ROM_HOST, UART1TCPBRIDGE_PORT, TCP_PURPOSE_UART_1_TCP_BRIDGE);
+				MySocket = TCPOpen((DWORD)USE_REMOTE_TCP_SERVER, TCP_OPEN_ROM_HOST, UART1TCPBRIDGE_PORT, TCP_PURPOSE_UART_2_TCP_BRIDGE);
 			#else
-				MySocket = TCPOpen(0, TCP_OPEN_SERVER, UART1TCPBRIDGE_PORT, TCP_PURPOSE_UART_1_TCP_BRIDGE);
+				MySocket = TCPOpen(0, TCP_OPEN_SERVER, UART1TCPBRIDGE_PORT, TCP_PURPOSE_UART_2_TCP_BRIDGE);
             #endif
 			
 			// Abort operation if no TCP socket of type TCP_PURPOSE_UART_2_TCP_BRIDGE is available
@@ -177,15 +188,17 @@ void UART2TCPBridgeTask(void)
 
 			// Make sure to clear UART errors so they don't block all future operations
 
-			if(RCSTAbits.OERR)
+			if(OERR2) //RCSTAbits.OERR)
 			{
-				RCSTAbits.CREN = 0;
-				RCSTAbits.CREN = 1;
+				//RCSTAbits.CREN = 0;
+				CREN2 = 0;
+				//RCSTAbits.CREN = 1;
+				CREN2 = 1;
 				LED1_IO ^= 1;
 			}
-			if(RCSTAbits.FERR)
+			if(FERR2) //RCSTAbits.FERR)
 			{
-				BYTE dummy = RCREG;
+				BYTE dummy = RCREG2; //RCREG;
 				LED2_IO ^= 1;
 			}
 
@@ -217,7 +230,8 @@ void UART2TCPBridgeTask(void)
 					if(THISINFO)putrsUART((ROM char *)"\r\UART Bridge look at it");
 				}
 			}
-			PIE1bits.RCIE = 1;
+			//PIE1bits.RCIE = 1;
+			RC2IE = 1;
 			
 
 
@@ -236,7 +250,8 @@ void UART2TCPBridgeTask(void)
 				    if(ptx != NULL) {
 					    if(ptx->index > 0) {
 						    //Æô¶¯·¢ËÍ
-						    PIE1bits.TXIE = 1;
+						    //PIE1bits.TXIE = 1;
+							TX2IE = 1;
 					    }
 				    }
 				}
@@ -274,27 +289,28 @@ void UART2TCPBridgeTask(void)
  * Note:            This function is supposed to be called in the ISR 
  *					context.
  ********************************************************************/
-void UART2TCPBridgeISR(void)
+void UART2TCPBridgeISR2(void)
 {
 	// NOTE: All local variables used here should be declared static
 	static BYTE i;
 	static unsigned int s;
 
 	// Store a received byte, if pending, if possible
-	if(PIR1bits.RCIF && PIE1bits.RCIE)
+	if(RC2IF && RC2IE) //PIR1bits.RCIF && PIE1bits.RCIE)
 	{
 		// Get the byte
-		i = RCREG;
+		i = RCREG2;
 
 		// Clear the interrupt flag so we don't keep entering this ISR
-		PIR1bits.RCIF = 0;
+		//PIR1bits.RCIF = 0;
+		RC2IF = 0;
 
 		pack_prase_in(i);
 
 	}
 
 	// Transmit a byte, if pending, if possible
-	if(PIR1bits.TXIF && PIE1bits.TXIE)
+	if(TX2IF && TX2IE)  //PIR1bits.TXIF && PIE1bits.TXIE)
 	{
 		if(pcurrent_tx == NULL) {
 			pcurrent_tx = find_ready_tx_buffer();
@@ -305,12 +321,13 @@ void UART2TCPBridgeISR(void)
 		}
 		if(pcurrent_tx) {
 			if(tx_index < pcurrent_tx->index) {
-				TXREG = pcurrent_tx->buffer[tx_index++];
+				TXREG2 = pcurrent_tx->buffer[tx_index++];
 			} else {
 				//Íê±Ï
 				pcurrent_tx->finished = 0;
 				pcurrent_tx = NULL;
-				PIE1bits.TXIE = 0;
+				//PIE1bits.TXIE = 0;
+				TX2IE = 0;
 			}
 		}
 	}

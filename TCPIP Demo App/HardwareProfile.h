@@ -1245,6 +1245,7 @@
 	#define IPR1bits			(*((IPR1bits*)&IPR1))
 	#define T0CONbits			(*((T0CONbits*)&T0CON))
 	#define TXSTAbits			(*((TXSTAbits*)&TXSTA))
+	#define TXSTA2bits			(*((TXSTAbits*)&TXSTA2))
 	#define RCSTAbits			(*((RCSTAbits*)&RCSTA))
 	#define SSPCON1bits			(*((SSPCON1bits*)&SSPCON1))
 	#define SSPCON2bits			(*((SSPCON2bits*)&SSPCON2))
@@ -1256,6 +1257,7 @@
 	#define EIRbits				(*((EIRbits*)&EIR))
 	#define MISTATbits			(*((MISTATbits*)&MISTAT))
 	#define BAUDCONbits			(*((BAUDCONbits*)&BAUDCON1))
+	#define BAUDCON2bits		(*((BAUDCONbits*)&BAUDCON2))
 
 #if 1
 
