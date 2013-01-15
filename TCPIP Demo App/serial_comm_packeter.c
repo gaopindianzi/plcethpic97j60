@@ -86,16 +86,19 @@ unsigned int CRC162(unsigned char *Array,unsigned int Len)
 	return CRC;
 }
 
+TICK  rx_timeout_max;
 
 void serial_rx_tx_initialize(void)
 {
 	unsigned int i;
 	for(i=0;i<RX_PACKS_MAX_NUM;i++) {
+		rx_ctl.rx_packs[i].index = 0;
         rx_ctl.rx_packs[i].finished = 0;
 	}
 	for(i=0;i<TX_PACKS_MAX_NUM;i++) {
         tx_ctl.packet[i].finished = 0;
 	}
+	rx_timeout_max = TICK_SECOND;
 }
 
 
@@ -111,7 +114,6 @@ void rx_find_next_empty_buffer(void)
 			break;
 		}
 	}
-	
 }
 
 extern void set_led_flash_int(unsigned int on_time,unsigned int off_time,unsigned int times);
@@ -119,9 +121,11 @@ extern void set_led_flash_int(unsigned int on_time,unsigned int off_time,unsigne
 void pack_prase_in(unsigned char ch)
 {
    DATA_RX_PACKET_T * prx;
+
    if(rx_ctl.pcurrent_rx == NULL) {
 	   rx_find_next_empty_buffer();
 	   if(rx_ctl.pcurrent_rx == NULL) {
+		   set_led_flash_int(100,200,4);
 		   return ;
 	   }
    }
@@ -130,63 +134,36 @@ void pack_prase_in(unsigned char ch)
 	   rx_find_next_empty_buffer();
 	   prx = rx_ctl.pcurrent_rx;
 	   if(prx == NULL) {
-		   set_led_flash_int(10,20,5);
+		   set_led_flash_int(100,200,6);
 		   return ;
 	   }
    }
-   switch(prx->state)
-   {
-   case STREAM_IDLE:
-     if(ch == STREAM_START) {
-       prx->state = STREAM_NORMAL;
-       prx->index = 0;
-     }
-     break;
-   case STREAM_NORMAL:
-     if(ch == STREAM_ESCAPE) {
-       prx->state = STREAM_IN_ESC;
-     } else if(ch == STREAM_START) {
-       prx->state = STREAM_IDLE;
-     } else if(ch == STREAM_END) {
-       if(prx->index >= 3) {
-         unsigned int crc = CRC16(prx->buffer,prx->index-2);
-         if(crc == LSB_BYTES_TO_WORD(&prx->buffer[prx->index-2])) {
-			 prx->index -= 2;
-			 prx->look_up_times = 0;
-             prx->finished = 1;
-			 set_led_flash_int(100,200,5);
-         }
-       }
-	   prx->state = STREAM_IDLE;
-     } else {
-       prx->buffer[prx->index++] = ch;
-     }
-     break;
-   case STREAM_IN_ESC:
-     if(ch == STREAM_ESCAPE) {
-       prx->buffer[prx->index++] = STREAM_ESCAPE;
-       prx->state = STREAM_NORMAL;
-     } else if(ch == STREAM_ES_S) {
-       prx->buffer[prx->index++] = STREAM_START;
-       prx->state = STREAM_NORMAL;
-     } else if(ch == STREAM_ES_E) {
-       prx->buffer[prx->index++] = STREAM_END;
-       prx->state = STREAM_NORMAL;
-     } else {
-       prx->state = STREAM_IDLE;
-     }
-     break;
-   default:
-     prx->state = STREAM_IDLE;
-     break;
-   }
    //溢出判断
-   if(prx->index >= sizeof(prx->buffer)) {
-     prx->state = STREAM_IDLE;
+   if(prx->index < sizeof(prx->buffer)) {
+	   prx->buffer[prx->index++] = ch;
+	   if(prx->index >= sizeof(prx->buffer)) {
+		   prx->finished = 1;
+	   }
+   } else {
    }
+   prx->rx_time = TickGet();
+   //set_led_flash_int(20,40,2);
 }
 
 
+
+void pack_rx_timetick(void)
+{
+	DATA_RX_PACKET_T * prx;
+	if(rx_ctl.pcurrent_rx != NULL) {
+		prx = rx_ctl.pcurrent_rx;
+		if(!prx->finished && prx->index > 0) {
+		    if(TickGet() - prx->rx_time >= rx_timeout_max) {
+			    prx->finished = 1;
+		    }
+		}
+	}
+}
 
 
 
@@ -329,13 +306,13 @@ void tx_free_useless_packet(unsigned int net_communication_count)
 	for(i=0;i<RX_PACKS_MAX_NUM;i++) {
 		prx = &rx_ctl.rx_packs[i]; 
 		if(prx->finished) {
-			if(prx->look_up_times >= net_communication_count) {
+			//if(prx->look_up_times >= net_communication_count) {
 				prx->finished = 0; //所有人都看过了，结果没有人需要，则丢弃它。
 
 
-				if(THISINFO)putrsUART((ROM char *)"\r\rx all people look at it and no use,free it.");
+			//	if(THISINFO)putrsUART((ROM char *)"\r\rx all people look at it and no use,free it.");
 
-			}
+			//}
 		}
 	}
 }

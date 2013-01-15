@@ -383,7 +383,7 @@ int main(void)
         #endif
 
 		DiscoverTask();
-		//TaskLedFlash();
+		TaskLedFlash();
 
 	    #if defined(STACK_USE_UART1TCP_BRIDGE)
 	    UART1TCPBridgeTask(); //502端口之用
@@ -393,8 +393,7 @@ int main(void)
 	    UART2TCPBridgeTask2(); //自定义串口转换
 	    #endif
 
-		
-
+		pack_rx_timetick();
 
 #ifdef STACK_USE_RUNING_RST
 		ResetTask();

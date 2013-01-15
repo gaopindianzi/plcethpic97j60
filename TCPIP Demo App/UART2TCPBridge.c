@@ -209,27 +209,19 @@ void UART2TCPBridgeTask2(void)
 			prx =  GetFinishedPacket();
 			if(prx != NULL) {
 				if(prx->finished) {
-					prx->look_up_times++;
-					if(prx->index > 3) {
-						unsigned int port = prx->buffer[0];
-						port <<= 8; port |= prx->buffer[1];
-						if(port == 502) {
-							port = prx->index - 3;
-							wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
-							if(wMaxPut >= port) {
-								//一次性发送完毕
-								TCPPutArray(MySocket, &(prx->buffer[3]), port);
-								TCPFlush(MySocket);
-							} else {
-								//丢弃，发不了啊。。。丢弃
-							}
+					if(prx->index > 0) {
+						wMaxPut = TCPIsPutReady(MySocket);	// Get TCP TX FIFO space
+						wMaxPut = (prx->index > wMaxPut)?wMaxPut:prx->index;
+						if(wMaxPut > 0) {
+							TCPPutArray(MySocket, &(prx->buffer[0]), wMaxPut);
+							prx->index = 0;
 							prx->finished = 0;
+							TCPFlush(MySocket);
 						}
-					} else {
-						//没法判断
 					}
-					//prx->finished = 0;  //测试用 
-					if(THISINFO)putrsUART((ROM char *)"\r\UART Bridge look at it");
+					prx->index = 0;
+					prx->finished = 0;  //测试用
+					//if(THISINFO)putrsUART((ROM char *)"\r\UART Bridge look at it");
 				}
 			}
 			//PIE1bits.RCIE = 1;
@@ -263,13 +255,6 @@ void UART2TCPBridgeTask2(void)
 				TCPDiscard(MySocket);
 			}
 			break;
-	}
-	//如果什么都没做，也必须通知接收者该不该释放
-	prx =  GetFinishedPacket();
-	if(prx != NULL) {
-		if(prx->finished) {
-			prx->look_up_times++;
-		}
 	}
 }
 
@@ -306,9 +291,8 @@ void UART2TCPBridgeISR2(void)
 		//PIR1bits.RCIF = 0;
 		RC2IF = 0;
 
-		//pack_prase_in(i);
-
-		RUN_LED_IO = !RUN_LED_IO;
+		pack_prase_in(i);
+	
 	}
 
 	// Transmit a byte, if pending, if possible
