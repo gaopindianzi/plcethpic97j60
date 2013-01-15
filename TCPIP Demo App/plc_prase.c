@@ -423,8 +423,11 @@ const unsigned char plc_test_flash[512] =
 	PLC_OR,0x02,57,
 	PLC_OR,0x02,58,
 	PLC_OUT,0x01,0x02,
-	PLC_OUTT,0x08,100,0x00,100,
-	PLC_OUTT,0x0C,100,0x00,100,
+
+	PLC_LDI,0x08,100,
+	PLC_OUTT,0x08,100,0x00,20,
+	PLC_LDP,0x08,100,
+	PLC_SEI,0x01,3,
 
 
 
@@ -521,7 +524,7 @@ void plc_code_test_init(void)
 
 void read_next_plc_code(void)
 {
-#if 0
+#if 1
 	unsigned int i;
 	unsigned int base = GET_OFFSET_MEM_OF_STRUCT(My_APP_Info_Struct,plc_programer);
 	unsigned int size = sizeof(My_APP_Info_Struct) - base;

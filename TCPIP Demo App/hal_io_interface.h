@@ -30,6 +30,10 @@ typedef struct _My_APP_Info_Struct
 {
 	APP_CONFIG     oapp;
 	unsigned char  io_out_hold;
+	unsigned char  uart2_baud_lo2;   //波特率最高字节
+	unsigned char  uart2_baud_lo1;
+	unsigned char  uart2_baud_lo0;
+	unsigned char  uart2_pack_timeout;  //毫秒为单位
 	unsigned char  plc_programer;
 	unsigned char  plc_programer2[1024*4-1];
 } My_APP_Info_Struct; 

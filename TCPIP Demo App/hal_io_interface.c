@@ -301,11 +301,11 @@ unsigned int write_plc_programer(unsigned int index,unsigned char * buffer,unsig
 {
 	unsigned int i = len;
 	unsigned int base = index + GET_MEMBER_BASE_OF_STRUCT(My_APP_Info_Struct,plc_programer);
-	XEEBeginWrite(base);	
-	while(i--) {
-		XEEWrite(*buffer++);
+	for(i=0;i<len;i++) {
+	    XEEBeginWrite(base+i);
+		XEEWrite(buffer[i]);
+	    XEEEndWrite();
 	}
-	XEEEndWrite();
 	return len;
 }
 

@@ -621,6 +621,7 @@ unsigned int CmdPlcWrite(CmdHead * cmd,unsigned int len)
 		}
 		if(datlen > 0) {
 		    len = write_plc_programer(base,pbuf,datlen);
+			      read_plc_programer(base,pbuf,datlen);
 			pack->data_len_hi = datlen >> 8;
 			pack->data_len_lo = datlen & 0xFF;
 		} else {
