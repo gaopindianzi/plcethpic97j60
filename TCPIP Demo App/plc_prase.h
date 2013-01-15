@@ -9,7 +9,7 @@
 #define  IO_OUTPUT_BASE         256  //0x01,0x00
 #define  IO_OUTPUT_COUNT                    PHY_RELAY_OUT_NUM
 #define  AUXI_RELAY_BASE        512  //0x02,0x00
-#define  AUXI_RELAY_COUNT                   100
+#define  AUXI_RELAY_COUNT                   256
 #define  AUXI_HOLDRELAY_BASE    1024 //0x04,0x00
 #define  AUXI_HOLDRELAY_COUNT               (31*8)
 
@@ -17,16 +17,16 @@
 #define  SPECIAL_RELAY_COUNT                1   //只有一位，复位标记继电器
 //
 #define  TIMING100MS_EVENT_BASE  0x0800  //0x08,0x00
-#define  TIMING100MS_EVENT_COUNT            24
+#define  TIMING100MS_EVENT_COUNT            128
 
 #define  TIMING1S_EVENT_BASE     0x0C00  //0x0C,0x00
-#define  TIMING1S_EVENT_COUNT               24
+#define  TIMING1S_EVENT_COUNT               128
 
 #define  COUNTER_EVENT_BASE      4096  //0x10,0x00
-#define  COUNTER_EVENT_COUNT                24
+#define  COUNTER_EVENT_COUNT                32
 //字节变量，这里MODBUS协议的寄存器读写，都是2字节合并为一个字
 #define  REG_BASE                0
-#define  REG_COUNT                          128
+#define  REG_COUNT                          64
 //时间地址，这里开始MODBUS协议的寄存器读写，一个字节就认为是一个字
 #define  REG_RTC_BASE            0x2000  //8192
 #define  REG_RTC_COUNT                      7    //年月日，时分秒，星期

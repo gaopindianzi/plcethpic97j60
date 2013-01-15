@@ -226,7 +226,6 @@ void UART2TCPBridgeTask2(void)
 			}
 			//PIE1bits.RCIE = 1;
 			RC2IE = 1;
-			
 
 
 

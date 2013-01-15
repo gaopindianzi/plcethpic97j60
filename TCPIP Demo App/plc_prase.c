@@ -423,6 +423,8 @@ const unsigned char plc_test_flash[512] =
 	PLC_OR,0x02,57,
 	PLC_OR,0x02,58,
 	PLC_OUT,0x01,0x02,
+	PLC_OUTT,0x08,100,0x00,100,
+	PLC_OUTT,0x0C,100,0x00,100,
 
 
 
